@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Reset PCs - Anime Cyber Sakura</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    :root {
+      --bg-1: #040611;
+      --bg-2: #091127;
+      --bg-3: #111a39;
+      --bg-4: #1d0f38;
+      --bg-5: #03050d;
+
+      --text: #effbff;
+      --muted: #bad7f3;
+      --line: rgba(120, 231, 255, 0.18);
+
+      --button: linear-gradient(135deg, #00d9ff 0%, #4e7bff 42%, #ff5fcf 100%);
+      --button-hover: linear-gradient(135deg, #46e7ff 0%, #7597ff 42%, #ff82dc 100%);
+
+      --shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+      --shadow-soft: 0 18px 56px rgba(0, 217, 255, 0.16);
+      --glass: saturate(180%) blur(24px);
+
+      --accent-1: #7df9ff;
+      --accent-2: #8f7dff;
+      --accent-3: #ff5fcf;
+      --accent-4: #f6fbff;
+
+      --panel-bg-top: rgba(8,20,54,.54);
+      --panel-bg-bottom: rgba(10,8,34,.66);
+      --panel-radial-1: rgba(125,249,255,.16);
+      --panel-radial-2: rgba(143,125,255,.14);
+      --panel-radial-3: rgba(255,95,207,.12);
+
+      --field-top: rgba(7,16,42,.94);
+      --field-bottom: rgba(13,24,63,.78);
+
+      --card-top: rgba(9,18,48,.78);
+      --card-bottom: rgba(8,10,30,.84);
+
+      --toast-top: rgba(9,18,48,.92);
+      --toast-bottom: rgba(10,9,32,.86);
+
+      --moon-core: rgba(215,250,255,.94);
+      --moon-mid: rgba(125,249,255,.52);
+      --moon-outer: rgba(143,125,255,.18);
+
+      --body-glow-1: rgba(125, 249, 255, .22);
+      --body-glow-2: rgba(143, 125, 255, .20);
+      --body-glow-3: rgba(255, 95, 207, .18);
+
+      --mist-1: rgba(255,255,255,.04);
+      --mist-2: rgba(125,249,255,.08);
+      --mist-3: rgba(143,125,255,.08);
+      --mist-4: rgba(255,95,207,.06);
+
+      --petal-c1: #f5fbff;
+      --petal-c2: #9cecff;
+      --petal-c3: #8a8bff;
+      --petal-c4: #ff5fcf;
+
+      --online-glow: 0 0 0 1px rgba(125,249,255,.16), 0 0 28px rgba(125,249,255,.18), 0 0 62px rgba(125,249,255,.10), 0 18px 48px rgba(125,249,255,.12);
+      --booting-glow: 0 0 0 1px rgba(143,125,255,.18), 0 0 28px rgba(143,125,255,.18), 0 0 62px rgba(143,125,255,.10), 0 18px 48px rgba(143,125,255,.10);
+      --resetting-glow: 0 0 0 1px rgba(255,95,207,.16), 0 0 28px rgba(255,95,207,.16), 0 0 62px rgba(255,95,207,.08), 0 18px 48px rgba(255,95,207,.10);
+      --bootfail-glow: 0 0 0 1px rgba(255,117,177,.14), 0 0 28px rgba(255,117,177,.14), 0 0 62px rgba(255,117,177,.08), 0 18px 48px rgba(255,117,177,.10);
+      --offline-glow: 0 0 0 1px rgba(214,235,255,.10), 0 0 18px rgba(214,235,255,.10), 0 18px 42px rgba(214,235,255,.08);
+      --bootlock-glow: 0 0 0 1px rgba(143,125,255,.16), 0 0 28px rgba(143,125,255,.14), 0 0 62px rgba(143,125,255,.08), 0 18px 48px rgba(143,125,255,.10);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      background:
+        radial-gradient(circle at 14% 18%, var(--body-glow-1) 0%, transparent 18%),
+        radial-gradient(circle at 86% 14%, var(--body-glow-2) 0%, transparent 22%),
+        radial-gradient(circle at 50% 100%, var(--body-glow-3) 0%, transparent 28%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 18%, var(--bg-3) 38%, var(--bg-4) 82%, var(--bg-5) 100%);
+      background-attachment: fixed;
+      transition: background .5s ease, color .3s ease;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(120px);
+      opacity: .54;
+    }
+
+    body::before {
+      width: 42vw;
+      height: 42vw;
+      top: -12vw;
+      left: -10vw;
+      background: radial-gradient(circle,
+        rgba(125,249,255,.22) 0%,
+        rgba(143,125,255,.12) 36%,
+        rgba(255,95,207,.08) 68%,
+        transparent 76%);
+      animation: nebulaFloat 18s ease-in-out infinite;
+    }
+
+    body::after {
+      width: 40vw;
+      height: 40vw;
+      right: -11vw;
+      bottom: -12vw;
+      background: radial-gradient(circle,
+        rgba(255,95,207,.18) 0%,
+        rgba(125,249,255,.10) 38%,
+        rgba(143,125,255,.08) 66%,
+        transparent 76%);
+      animation: nebulaFloat 24s ease-in-out infinite reverse;
+    }
+
+    .space-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .moon-glow,
+    .mist,
+    .sakura-drift,
+    .sparkle-layer,
+    .wind-layer,
+    .cyber-grid,
+    .cyber-rings {
+      position: absolute;
+      inset: -10%;
+      pointer-events: none;
+    }
+
+    .moon-glow {
+      inset: auto;
+      width: 340px;
+      height: 340px;
+      top: 36px;
+      right: 58px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 50%,
+          var(--moon-core) 0%,
+          var(--moon-mid) 22%,
+          var(--moon-outer) 46%,
+          rgba(255,255,255,0.02) 62%,
+          transparent 72%);
+      box-shadow:
+        0 0 80px rgba(125,249,255,.24),
+        0 0 140px rgba(143,125,255,.12);
+      filter: blur(1px);
+      opacity: .96;
+      animation: moonPulse 8s ease-in-out infinite;
+    }
+
+    .moon-glow::after {
+      content: "";
+      position: absolute;
+      inset: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.16);
+      opacity: .6;
+    }
+
+    .mist {
+      background:
+        radial-gradient(circle at 18% 26%, var(--mist-1), transparent 18%),
+        radial-gradient(circle at 78% 18%, var(--mist-2), transparent 18%),
+        radial-gradient(circle at 68% 80%, var(--mist-3), transparent 18%),
+        radial-gradient(circle at 36% 72%, var(--mist-4), transparent 16%);
+      filter: blur(42px);
+      opacity: .9;
+      animation: particlesFloat 22s ease-in-out infinite alternate;
+    }
+
+    .wind-layer {
+      background:
+        linear-gradient(115deg, transparent 20%, rgba(255,255,255,.04) 32%, transparent 44%),
+        linear-gradient(115deg, transparent 56%, rgba(125,249,255,.08) 66%, transparent 76%);
+      opacity: .5;
+      animation: windSweep 18s linear infinite;
+      mix-blend-mode: screen;
+    }
+
+    .sparkle-layer {
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,.96), transparent 55%),
+        radial-gradient(2px 2px at 130px 80px, rgba(125,249,255,.94), transparent 55%),
+        radial-gradient(1.8px 1.8px at 240px 170px, rgba(255,255,255,.92), transparent 55%),
+        radial-gradient(1.6px 1.6px at 340px 60px, rgba(143,125,255,.86), transparent 55%),
+        radial-gradient(1.8px 1.8px at 460px 220px, rgba(255,255,255,.9), transparent 55%),
+        radial-gradient(1.5px 1.5px at 580px 130px, rgba(255,95,207,.82), transparent 55%);
+      background-size: 620px 320px;
+      opacity: .42;
+      animation: sparkleDrift 80s linear infinite;
+    }
+
+    .cyber-grid {
+      inset: auto;
+      width: 760px;
+      height: 760px;
+      right: -170px;
+      top: -160px;
+      border-radius: 50%;
+      background:
+        repeating-radial-gradient(circle, rgba(125,249,255,.06) 0 2px, transparent 2px 54px),
+        linear-gradient(rgba(125,249,255,.05), rgba(125,249,255,.05));
+      opacity: .24;
+      mask-image: radial-gradient(circle, rgba(255,255,255,.95), transparent 78%);
+    }
+
+    .cyber-rings {
+      inset: auto;
+      width: 760px;
+      height: 760px;
+      right: -170px;
+      top: -160px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        rgba(125,249,255,.02) 300deg,
+        rgba(125,249,255,.18) 340deg,
+        rgba(143,125,255,.28) 350deg,
+        rgba(255,95,207,.08) 360deg
+      );
+      filter: blur(8px);
+      opacity: .62;
+      animation: radarSpin 8s linear infinite;
+      mask-image: radial-gradient(circle, rgba(255,255,255,.95), transparent 78%);
+    }
+
+    .sakura-drift .petal {
+      position: absolute;
+      top: -10vh;
+      width: 18px;
+      height: 18px;
+      opacity: .9;
+      animation-name: sakuraFall;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      filter: drop-shadow(0 0 8px rgba(125,249,255,.22));
+    }
+
+    .petal::before,
+    .petal::after,
+    .sakura-burst::before,
+    .sakura-burst::after {
+      content: "";
+      position: absolute;
+      background: radial-gradient(circle at 35% 35%, var(--petal-c1) 0%, var(--petal-c2) 30%, var(--petal-c3) 68%, var(--petal-c4) 100%);
+      box-shadow: inset 0 0 3px rgba(255,255,255,.45);
+    }
+
+    .petal::before,
+    .sakura-burst::before {
+      left: 2px;
+      top: 2px;
+      width: 11px;
+      height: 15px;
+      border-radius: 60% 60% 60% 0;
+      transform: rotate(-28deg);
+      transform-origin: bottom right;
+    }
+
+    .petal::after,
+    .sakura-burst::after {
+      left: 7px;
+      top: 1px;
+      width: 11px;
+      height: 15px;
+      border-radius: 60% 60% 0 60%;
+      transform: rotate(28deg) scale(.95);
+      transform-origin: bottom left;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 34px 24px 56px;
+    }
+
+    .wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: linear-gradient(180deg, rgba(255,255,255,.24), transparent 74%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(46px, 5vw, 82px);
+      line-height: .9;
+      font-weight: 1000;
+      letter-spacing: -.065em;
+      background: linear-gradient(135deg, #f6fbff 0%, #c9f7ff 18%, #7df9ff 36%, #8f7dff 58%, #ff5fcf 82%, #ffffff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow:
+        0 12px 44px rgba(125,249,255,.12),
+        0 0 34px rgba(143,125,255,.10);
+      position: relative;
+    }
+
+    h1::after {
+      content: "";
+      display: block;
+      width: min(420px, 58vw);
+      height: 4px;
+      margin-top: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3));
+      box-shadow:
+        0 0 20px rgba(125,249,255,.32),
+        0 0 36px rgba(143,125,255,.18);
+    }
+
+    .sub {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0 28px;
+      padding: 12px 20px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.05) 100%);
+      backdrop-filter: var(--glass);
+      color: var(--muted);
+      font-size: 14px;
+      box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,.14);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sub::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,.24) 50%, transparent 80%);
+      transform: translateX(-120%);
+      animation: shine 5.5s linear infinite;
+    }
+
+    .sub b {
+      color: #ffffff;
+      font-weight: 900;
+      letter-spacing: .22em;
+      text-shadow: 0 0 14px rgba(125,249,255,.24);
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1.18fr 1fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--panel-bg-top) 0%, var(--panel-bg-bottom) 100%);
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      padding: 24px;
+      box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,.07),
+        0 0 0 1px rgba(255,255,255,.03);
+      backdrop-filter: var(--glass);
+      isolation: isolate;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top left, var(--panel-radial-1), transparent 28%),
+        radial-gradient(circle at 85% 12%, var(--panel-radial-2), transparent 24%),
+        radial-gradient(circle at bottom right, var(--panel-radial-3), transparent 32%),
+        linear-gradient(135deg, rgba(255,255,255,.03), transparent 40%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,0), rgba(125,249,255,.18), rgba(255,255,255,0), rgba(255,95,207,.14));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: .78;
+    }
+
+    .panel h2 {
+      margin: 0 0 18px;
+      font-size: 22px;
+      letter-spacing: -.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 0 14px rgba(255,255,255,.05);
+    }
+
+    .panel h2::before {
+      content: "✦";
+      font-size: 18px;
+      color: var(--accent-1);
+      filter: drop-shadow(0 0 10px rgba(125,249,255,.36));
+      animation: corePulse 2.8s ease-in-out infinite;
+      flex: 0 0 auto;
+    }
+
+    .status-row,
+    .btn-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status-row { margin-bottom: 18px; }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--accent-3);
+      box-shadow: 0 0 0 0 rgba(255,95,207,.75);
+      display: inline-block;
+      animation: pulseRed 1.8s infinite;
+    }
+
+    .dot.connected {
+      background: var(--accent-1);
+      box-shadow: 0 0 0 0 rgba(125,249,255,.75);
+      animation: pulseCyan 1.8s infinite;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      padding: 10px 15px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid rgba(125,249,255,.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 20px rgba(0,0,0,.12);
+      backdrop-filter: var(--glass);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select,
+    .search {
+      width: 100%;
+      height: 54px;
+      padding: 0 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(125,249,255,.22);
+      background: linear-gradient(180deg, var(--field-top) 0%, var(--field-bottom) 100%);
+      color: var(--text);
+      outline: none;
+      font-size: 15px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 12px 30px rgba(0,0,0,.22);
+      transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .search:focus {
+      border-color: rgba(125,249,255,.50);
+      box-shadow:
+        0 0 0 4px rgba(125,249,255,.10),
+        0 12px 34px rgba(143,125,255,.12),
+        0 0 22px rgba(255,95,207,.10);
+      transform: translateY(-1px);
+    }
+
+    .field input::placeholder,
+    .search::placeholder {
+      color: #9fb9d5;
+    }
+
+    .btn-row { margin-top: 14px; }
+
+    button {
+      position: relative;
+      overflow: hidden;
+      border: 0;
+      border-radius: 18px;
+      padding: 13px 18px;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: .03em;
+      cursor: pointer;
+      color: #fff;
+      transition: transform .22s ease, box-shadow .25s ease, filter .2s ease;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,.16);
+      will-change: transform;
+    }
+
+    button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.24) 50%, transparent 100%);
+      transform: translateX(-120%);
+      transition: transform .72s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px) scale(1.012);
+      filter: brightness(1.05);
+      box-shadow: 0 20px 38px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.06) inset, 0 0 26px rgba(125,249,255,.10);
+    }
+
+    button:hover::before { transform: translateX(120%); }
+    button:active { transform: translateY(0) scale(.985); }
+
+    .btn-blue {
+      background: linear-gradient(135deg, #00d9ff 0%, #4e7bff 45%, #9c59ff 100%);
+    }
+
+    .btn-gray {
+      background: linear-gradient(135deg, #5f607f 0%, #7e7aa8 50%, #b3acd6 100%);
+    }
+
+    .btn-yellow {
+      background: linear-gradient(135deg, #ff8ec9 0%, #7df9ff 44%, #8f7dff 100%);
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, #7df9ff 0%, #4b8cff 46%, #ff5fcf 100%);
+    }
+
+    .btn-red {
+      background: var(--button);
+    }
+
+    .btn-red:hover {
+      background: var(--button-hover);
+    }
+
+    .help {
+      margin-top: 14px;
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .stats-board {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      padding: 18px 16px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.028) 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 14px 30px rgba(0,0,0,.20);
+      backdrop-filter: blur(16px);
+    }
+
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .98;
+    }
+
+    .stat-card.online-stat::before {
+      background: radial-gradient(circle at top right, rgba(125,249,255,.18), transparent 42%);
+    }
+
+    .stat-card.bootfail-stat::before {
+      background: radial-gradient(circle at top right, rgba(255,95,207,.16), transparent 42%);
+    }
+
+    .stat-card.offline-stat::before {
+      background: radial-gradient(circle at top right, rgba(214,235,255,.12), transparent 42%);
+    }
+
+    .stat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      box-shadow: 0 0 18px currentColor;
+    }
+
+    .stat-dot.online-dot { background: var(--accent-1); color: var(--accent-1); }
+    .stat-dot.bootfail-dot { background: var(--accent-3); color: var(--accent-3); }
+    .stat-dot.offline-dot { background: #d9e4ef; color: #d9e4ef; }
+
+    .stat-value {
+      position: relative;
+      z-index: 1;
+      font-size: 36px;
+      line-height: 1;
+      font-weight: 1000;
+      letter-spacing: -.05em;
+      color: #fff;
+      text-shadow: 0 8px 26px rgba(143,125,255,.12), 0 0 18px rgba(125,249,255,.08);
+    }
+
+    .stat-sub {
+      position: relative;
+      z-index: 1;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #d4e5f7;
+      line-height: 1.5;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--card-top) 0%, var(--card-bottom) 100%);
+      border: 1px solid rgba(125,249,255,.16);
+      border-radius: 28px;
+      padding: 18px;
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.05);
+      backdrop-filter: var(--glass);
+      transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
+      isolation: isolate;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(125,249,255,.16), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(255,95,207,.12), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent 35%);
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,0), rgba(125,249,255,.12), rgba(255,255,255,0), rgba(255,95,207,.10));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: .66;
+      z-index: -1;
+    }
+
+    .card .scan-line {
+      position: absolute;
+      inset: -20% -10%;
+      background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,.02) 48%, rgba(125,249,255,.08) 50%, rgba(255,255,255,.02) 52%, transparent 100%);
+      transform: translateY(-120%);
+      animation: cardScan 4.6s linear infinite;
+      pointer-events: none;
+      opacity: .55;
+      mix-blend-mode: screen;
+    }
+
+    .card .orbit-ring {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      top: -60px;
+      right: -60px;
+      border-radius: 50%;
+      border: 1px solid rgba(125,249,255,.10);
+      box-shadow: inset 0 0 30px rgba(125,249,255,.05);
+      pointer-events: none;
+      opacity: .48;
+    }
+
+    .card .orbit-ring::before,
+    .card .orbit-ring::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(143,125,255,.08);
+    }
+
+    .card .orbit-ring::after {
+      inset: 30px;
+      border-color: rgba(255,95,207,.07);
+    }
+
+    .card .status-beam {
+      position: absolute;
+      inset: auto -40px -80px auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      filter: blur(28px);
+      opacity: .13;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-7px) scale(1.012);
+      border-color: rgba(125,249,255,.26);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.50), 0 0 0 1px rgba(125,249,255,.08) inset;
+    }
+
+    .card.status-online {
+      box-shadow: var(--shadow), var(--online-glow), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .card.status-online .status-beam {
+      background: radial-gradient(circle, rgba(125,249,255,.78) 0%, rgba(125,249,255,.25) 35%, transparent 70%);
+    }
+
+    .card.status-booting {
+      box-shadow: var(--shadow), var(--booting-glow), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .card.status-booting .status-beam {
+      background: radial-gradient(circle, rgba(143,125,255,.72) 0%, rgba(143,125,255,.24) 35%, transparent 70%);
+    }
+
+    .card.status-resetting {
+      box-shadow: var(--shadow), var(--resetting-glow), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .card.status-resetting .status-beam {
+      background: radial-gradient(circle, rgba(255,95,207,.78) 0%, rgba(255,95,207,.24) 35%, transparent 70%);
+    }
+
+    .card.status-bootfail {
+      box-shadow: var(--shadow), var(--bootfail-glow), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .card.status-bootfail .status-beam {
+      background: radial-gradient(circle, rgba(255,117,177,.76) 0%, rgba(255,117,177,.24) 35%, transparent 70%);
+    }
+
+    .card.status-offline {
+      box-shadow: var(--shadow), var(--offline-glow), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .card.status-offline .status-beam {
+      background: radial-gradient(circle, rgba(214,235,255,.56) 0%, rgba(214,235,255,.18) 35%, transparent 70%);
+    }
+
+    .card.status-bootlock {
+      box-shadow: var(--shadow), var(--bootlock-glow), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .card.status-bootlock .status-beam {
+      background: radial-gradient(circle, rgba(143,125,255,.74) 0%, rgba(143,125,255,.24) 35%, transparent 70%);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .pc-name {
+      font-size: 22px;
+      font-weight: 1000;
+      letter-spacing: -.03em;
+      text-shadow: 0 6px 20px rgba(143,125,255,.16);
+    }
+
+    .badge {
+      min-width: 106px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 11px;
+      font-weight: 900;
+      border: 1px solid transparent;
+      text-transform: uppercase;
+      letter-spacing: .10em;
+      backdrop-filter: blur(12px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      position: relative;
+      z-index: 2;
+    }
+
+    .unknown {
+      background: rgba(143,125,255,.14);
+      color: #f0ecff;
+      border-color: rgba(143,125,255,.24);
+    }
+
+    .online {
+      background: rgba(125,249,255,.16);
+      color: #f4feff;
+      border-color: rgba(125,249,255,.26);
+      box-shadow: 0 0 22px rgba(125,249,255,.10);
+    }
+
+    .waiting {
+      background: rgba(255,95,207,.12);
+      color: #ffeaf8;
+      border-color: rgba(255,95,207,.22);
+    }
+
+    .resetting {
+      background: rgba(255,95,207,.16);
+      color: #ffdff3;
+      border-color: rgba(255,95,207,.24);
+      box-shadow: 0 0 20px rgba(255,95,207,.08);
+    }
+
+    .booting {
+      background: rgba(143,125,255,.16);
+      color: #f3efff;
+      border-color: rgba(143,125,255,.24);
+      box-shadow: 0 0 20px rgba(143,125,255,.10);
+    }
+
+    .bootfail {
+      background: rgba(255,117,177,.16);
+      color: #ffe0ec;
+      border-color: rgba(255,117,177,.26);
+    }
+
+    .offline {
+      background: rgba(255,255,255,.08);
+      color: #f6f8fb;
+      border-color: rgba(255,255,255,.18);
+    }
+
+    .bootlock {
+      background: rgba(143,125,255,.14);
+      color: #f0ecff;
+      border-color: rgba(143,125,255,.24);
+    }
+
+    .meta {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #eaf6ff;
+      margin-bottom: 16px;
+      word-break: break-word;
+      padding: 15px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.024) 100%);
+      border: 1px solid rgba(255,255,255,.07);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+      position: relative;
+      z-index: 2;
+    }
+
+    .meta .label {
+      color: var(--accent-1);
+      font-weight: 800;
+    }
+
+    .reset-btn {
+      width: 100%;
+      padding: 15px 16px;
+      background: var(--button);
+      color: white;
+      border-radius: 18px;
+      font-weight: 1000;
+      font-size: 15px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      box-shadow: 0 16px 32px rgba(255,95,207,.18), inset 0 1px 0 rgba(255,255,255,.18);
+      position: relative;
+      z-index: 2;
+    }
+
+    .log {
+      margin-top: 14px;
+      background: linear-gradient(180deg, var(--toast-top) 0%, var(--toast-bottom) 100%);
+      border: 1px solid rgba(125,249,255,.16);
+      border-radius: 22px;
+      padding: 14px;
+      max-height: 260px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      color: #edf8ff;
+      white-space: pre-wrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 24px rgba(0,0,0,.14);
+      display: none;
+    }
+
+    .log::-webkit-scrollbar { width: 10px; height: 10px; }
+    .log::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(125,249,255,.46), rgba(143,125,255,.46));
+      border-radius: 999px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 8, 18, 0.74);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+      backdrop-filter: blur(16px) saturate(135%);
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      width: min(100%, 500px);
+      background: linear-gradient(180deg, var(--panel-bg-top) 0%, var(--panel-bg-bottom) 100%);
+      border: 1px solid rgba(125,249,255,.18);
+      border-radius: 32px;
+      box-shadow: 0 40px 100px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.08);
+      overflow: hidden;
+      backdrop-filter: var(--glass);
+      animation: modalIn .24s ease;
+      position: relative;
+    }
+
+    .modal::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top left, rgba(125,249,255,.12), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255,95,207,.10), transparent 36%),
+        radial-gradient(circle at 85% 10%, rgba(143,125,255,.10), transparent 24%);
+      pointer-events: none;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 22px 22px 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+      background: rgba(255,95,207,.12);
+      color: #fff1f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      border: 1px solid rgba(255,95,207,.18);
+      flex: 0 0 auto;
+      box-shadow: 0 12px 28px rgba(255,95,207,.12);
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 1000;
+      margin: 0;
+      letter-spacing: -.03em;
+    }
+
+    .modal-body {
+      padding: 0 22px 22px;
+      color: #eaf6ff;
+      line-height: 1.7;
+      font-size: 15px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-pc {
+      color: var(--accent-1);
+      font-weight: 1000;
+      text-shadow: 0 0 14px rgba(125,249,255,.22);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 22px 22px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-outline {
+      background: rgba(255,255,255,.05);
+      color: #edf8ff;
+      border: 1px solid rgba(125,249,255,.18);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff5fcf 0%, #8f7dff 48%, #7df9ff 100%);
+      color: #fff;
+    }
+
+    .toast-wrap {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: min(92vw, 390px);
+    }
+
+    .toast {
+      border-radius: 22px;
+      border: 1px solid rgba(125,249,255,.16);
+      background: linear-gradient(180deg, var(--toast-top) 0%, var(--toast-bottom) 100%);
+      box-shadow: 0 26px 44px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06);
+      padding: 15px 16px;
+      color: #edf8ff;
+      animation: toastIn .22s ease;
+      backdrop-filter: var(--glass);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toast::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3));
+      opacity: .9;
+    }
+
+    .toast-title {
+      font-weight: 1000;
+      font-size: 15px;
+      margin-bottom: 4px;
+      letter-spacing: -.01em;
+    }
+
+    .toast-msg {
+      font-size: 14px;
+      color: #dfefff;
+      line-height: 1.5;
+    }
+
+    .sakura-burst {
+      position: fixed;
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+      z-index: 10001;
+      animation: burst 1s ease-out forwards;
+      filter: drop-shadow(0 0 10px rgba(125,249,255,.28));
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-8px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(10px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes nebulaFloat {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(1.5vw, 1.5vw, 0) scale(1.08); }
+    }
+
+    @keyframes particlesFloat {
+      0% { transform: translateY(0) translateX(0) scale(1); }
+      100% { transform: translateY(-22px) translateX(12px) scale(1.06); }
+    }
+
+    @keyframes sparkleDrift {
+      from { transform: translate3d(0,0,0); }
+      to { transform: translate3d(140px, 80px, 0); }
+    }
+
+    @keyframes moonPulse {
+      0%, 100% { transform: scale(1); opacity: .95; }
+      50% { transform: scale(1.03); opacity: 1; }
+    }
+
+    @keyframes windSweep {
+      from { transform: translateX(-6vw) translateY(0); }
+      to { transform: translateX(6vw) translateY(2vw); }
+    }
+
+    @keyframes radarSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes cardScan {
+      0% { transform: translateY(-120%); }
+      100% { transform: translateY(120%); }
+    }
+
+    @keyframes pulseCyan {
+      0% { box-shadow: 0 0 0 0 rgba(125,249,255,.75); }
+      70% { box-shadow: 0 0 0 12px rgba(255,255,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
+
+    @keyframes pulseRed {
+      0% { box-shadow: 0 0 0 0 rgba(255,95,207,.75); }
+      70% { box-shadow: 0 0 0 12px rgba(255,255,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
+
+    @keyframes corePulse {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.18); filter: brightness(1.14); }
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(120%); }
+    }
+
+    @keyframes sakuraFall {
+      0% {
+        transform: translate3d(0, -10vh, 0) rotate(0deg) scale(.88);
+        opacity: 0;
+      }
+      10% { opacity: .95; }
+      50% {
+        transform: translate3d(60px, 46vh, 0) rotate(180deg) scale(1);
+      }
+      100% {
+        transform: translate3d(-80px, 120vh, 0) rotate(360deg) scale(.92);
+        opacity: 0;
+      }
+    }
+
+    @keyframes burst {
+      0% {
+        transform: translate(0, 0) scale(.55) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--x), var(--y)) scale(1.35) rotate(var(--r));
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .top-grid { grid-template-columns: 1fr; }
+      .quick-actions { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .wrap { padding: 22px 16px 38px; }
+      .panel, .card { border-radius: 24px; }
+      .moon-glow {
+        width: 240px;
+        height: 240px;
+        top: 14px;
+        right: 10px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      h1 { line-height: 1.04; }
+      .btn-row { display: grid; grid-template-columns: 1fr 1fr; }
+      .btn-row button,
+      .modal-actions button { width: 100%; }
+      .modal-actions { flex-direction: column; }
+      .cards,
+      .stats-board { grid-template-columns: 1fr; }
+      .moon-glow { width: 180px; height: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="space-bg">
+    <div class="moon-glow"></div>
+    <div class="mist"></div>
+    <div class="wind-layer"></div>
+    <div class="sparkle-layer"></div>
+    <div class="cyber-grid"></div>
+    <div class="cyber-rings"></div>
+    <div class="sakura-drift" id="sakuraDrift"></div>
+  </div>
+
+  <div class="wrap">
+    <h1>Dashboard Reset PCs</h1>
+    <div class="sub"><b>HUNGTV</b>.</div>
+
+    <div class="top-grid">
+      <div class="panel">
+        <h2>Kết nối MQTT</h2>
+        <div class="status-row">
+          <span class="pill"><span id="connDot" class="dot"></span><span id="connText">Chưa kết nối</span></span>
+          <span class="pill">Subscribe: <b id="subTopicText">farm/pc/+/status</b></span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="brokerUrl">Broker WebSocket URL</label>
+            <input id="brokerUrl" value="wss://broker.hivemq.com:8884/mqtt" />
+          </div>
+          <div class="field">
+            <label for="clientId">Client ID</label>
+            <input id="clientId" />
+          </div>
+          <div class="field">
+            <label for="payloadReset">Payload reset</label>
+            <input id="payloadReset" value="RESET" />
+          </div>
+          <div class="field">
+            <label for="bootTimeout">Timeout boot fail (giây)</label>
+            <input id="bootTimeout" type="number" min="10" value="120" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button id="btnConnect" class="btn-blue">Kết nối</button>
+          <button id="btnDisconnect" class="btn-gray">Ngắt kết nối</button>
+          <button id="btnNewId" class="btn-yellow">Tạo ID mới</button>
+          <button id="btnSave" class="btn-green">Lưu cấu hình</button>
+        </div>
+
+        <div class="help">
+          Flow chuẩn: <b>RESETTING → BOOTING → ONLINE</b>.<br/>
+          Nếu quá thời gian chờ mà không nhận được <b>ONLINE</b> từ PC, máy sẽ thành <b>BOOT FAIL</b>.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Điều khiển nhanh</h2>
+        <div class="quick-actions">
+          <input id="searchInput" class="search" placeholder="Tìm PC, ví dụ: PC01 hoặc 01" />
+          <select id="filterStatus">
+            <option value="all">Tất cả</option>
+            <option value="unknown">Unknown</option>
+            <option value="online">Online</option>
+            <option value="resetting">Resetting</option>
+            <option value="booting">Booting</option>
+            <option value="bootfail">Boot Fail</option>
+            <option value="offline">Offline</option>
+            <option value="bootlock">Boot Lock</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button id="btnResetAll" class="btn-red">RESET ALL</button>
+          <button id="btnClearLog" class="btn-gray" style="display:none;">Xóa log</button>
+        </div>
+
+        <div class="stats-board">
+          <div class="stat-card online-stat">
+            <div class="stat-top">
+              <div class="stat-label">Online</div>
+              <span class="stat-dot online-dot"></span>
+            </div>
+            <div id="countOnline" class="stat-value">0</div>
+            <div class="stat-sub">Số máy đang hoạt động bình thường</div>
+          </div>
+
+          <div class="stat-card bootfail-stat">
+            <div class="stat-top">
+              <div class="stat-label">Boot Fail</div>
+              <span class="stat-dot bootfail-dot"></span>
+            </div>
+            <div id="countBootFail" class="stat-value">0</div>
+            <div class="stat-sub">Số máy reset xong nhưng không lên Windows</div>
+          </div>
+
+          <div class="stat-card offline-stat">
+            <div class="stat-top">
+              <div class="stat-label">Offline</div>
+              <span class="stat-dot offline-dot"></span>
+            </div>
+            <div id="countOffline" class="stat-value">0</div>
+            <div class="stat-sub">Số máy hiện không kết nối hoặc mất tín hiệu</div>
+          </div>
+        </div>
+
+        <div class="help" style="display:none;">HungTV</div>
+        <div id="logBox" class="log"></div>
+      </div>
+    </div>
+
+    <div id="cards" class="cards"></div>
+  </div>
+
+  <div id="toastWrap" class="toast-wrap"></div>
+
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-icon">↻</div>
+        <div><h3 class="modal-title">Xác nhận reset máy</h3></div>
+      </div>
+      <div class="modal-body">
+        Bạn có chắc muốn gửi lệnh <b>RESET</b> cho <span id="modalPcName" class="modal-pc">PC01</span> không?
+      </div>
+      <div class="modal-actions">
+        <button id="modalCancel" class="btn-outline">Không</button>
+        <button id="modalConfirm" class="btn-danger">Có, reset ngay</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PC_LIST = [
+      "PC01","PC02","PC03","PC04","PC05","PC06","PC07","PC08","PC09","PC10",
+      "PC11","PC12","PC13","PC14","PC15","PC16","PC17","PC18","PC19","PC20",
+      "PC21","PC22","PC23","PC24","PC25","PC26","PC27","PC28","PC29","PC30",
+      "PC31","PC32","PC33","PC34","PC35","PC36","PC37","PC38","PC39","PC40",
+      "PC41","PC42","PC43","PC44","PC45","PC46","PC47","PC48","PC49","PC50",
+      "PC51","PC52","PC53","PC54","PC55","PC56","PC57","PC58","PC59","PC60",
+      "PC61","PC62","PC63","PC64","PC65","PC66","PC67","PC68","PC69","PC70",
+      "PC71","PC72","PC73","PC74","PC75","PC76","PC77","PC78","PC79","PC80",
+      "PC81","PC82","PC83","PC84","PC85","PC86","PC87","PC88","PC89","PC90",
+      "PC91","PC92","PC93","PC94","PC95","PC96","PC97","PC98","PC99","PC100"
+    ];
+
+    const TOPIC_PREFIX = "farm/pc";
+    const STATUS_SUB = `${TOPIC_PREFIX}/+/status`;
+
+    const state = {
+      client: null,
+      connected: false,
+      pcs: {}
+    };
+
+    const el = (id) => document.getElementById(id);
+    const cardsEl = el('cards');
+    const logBox = el('logBox');
+
+    function genClientId() {
+      return `dashboard-${Math.random().toString(16).slice(2, 10)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function fmtTime(date = new Date()) {
+      return date.toLocaleString('vi-VN');
+    }
+
+    function resetTopic(pc) {
+      return `${TOPIC_PREFIX}/${pc}/reset`;
+    }
+
+    function statusTopic(pc) {
+      return `${TOPIC_PREFIX}/${pc}/status`;
+    }
+
+    function saveConfig() {
+      localStorage.setItem('mqtt_dashboard_config', JSON.stringify({
+        brokerUrl: el('brokerUrl').value.trim(),
+        clientId: el('clientId').value.trim(),
+        payloadReset: el('payloadReset').value,
+        bootTimeout: el('bootTimeout').value
+      }));
+      log('Đã lưu cấu hình.');
+      showToast('success', 'Đã lưu cấu hình', 'Thông tin broker và timeout đã được lưu.');
+    }
+
+    function loadConfig() {
+      const raw = localStorage.getItem('mqtt_dashboard_config');
+      el('clientId').value = genClientId();
+      if (!raw) return;
+      try {
+        const cfg = JSON.parse(raw);
+        if (cfg.brokerUrl) el('brokerUrl').value = cfg.brokerUrl;
+        if (cfg.clientId) el('clientId').value = cfg.clientId;
+        if (cfg.payloadReset) el('payloadReset').value = cfg.payloadReset;
+        if (cfg.bootTimeout) el('bootTimeout').value = cfg.bootTimeout;
+      } catch {}
+    }
+
+    function initState() {
+      PC_LIST.forEach(pc => {
+        state.pcs[pc] = {
+          name: pc,
+          status: 'unknown',
+          lastReset: 'Chưa có',
+          lastAck: 'Chưa có',
+          lastMessage: '',
+          bootTimer: null
+        };
+      });
+    }
+
+    function badgeClass(status) {
+      return ({
+        unknown: 'unknown',
+        online: 'online',
+        waiting: 'waiting',
+        resetting: 'resetting',
+        booting: 'booting',
+        bootfail: 'bootfail',
+        offline: 'offline',
+        bootlock: 'bootlock'
+      })[status] || 'unknown';
+    }
+
+    function badgeText(status) {
+      return ({
+        unknown: 'Unknown',
+        online: 'Online',
+        waiting: 'Waiting',
+        resetting: 'Resetting',
+        booting: 'Booting',
+        bootfail: 'Boot Fail',
+        offline: 'Offline',
+        bootlock: 'Boot Lock'
+      })[status] || 'Unknown';
+    }
+
+    function updateStats() {
+      let online = 0;
+      let bootfail = 0;
+      let offline = 0;
+
+      PC_LIST.forEach(pc => {
+        const status = state.pcs[pc].status;
+        if (status === 'online') online++;
+        if (status === 'bootfail') bootfail++;
+        if (status === 'offline') offline++;
+      });
+
+      el('countOnline').textContent = online;
+      el('countBootFail').textContent = bootfail;
+      el('countOffline').textContent = offline;
+    }
+
+    function renderCards() {
+      const q = el('searchInput').value.trim().toLowerCase();
+      const filter = el('filterStatus').value;
+
+      const html = PC_LIST.filter(pc => {
+        const item = state.pcs[pc];
+        const okSearch = !q || pc.toLowerCase().includes(q);
+        const okFilter = filter === 'all' || item.status === filter;
+        return okSearch && okFilter;
+      }).map(pc => {
+        const item = state.pcs[pc];
+        return `
+          <div class="card status-${escapeHtml(item.status)}">
+            <div class="scan-line"></div>
+            <div class="orbit-ring"></div>
+            <div class="status-beam"></div>
+            <div class="card-head">
+              <div class="pc-name">${escapeHtml(pc)}</div>
+              <div class="badge ${badgeClass(item.status)}">${badgeText(item.status)}</div>
+            </div>
+            <div class="meta">
+              <div><span class="label">Reset topic:</span><br>${escapeHtml(resetTopic(pc))}</div>
+              <div style="margin-top:6px"><span class="label">Status topic:</span><br>${escapeHtml(statusTopic(pc))}</div>
+              <div style="margin-top:6px"><span class="label">Reset gần nhất:</span> ${escapeHtml(item.lastReset)}</div>
+              <div style="margin-top:6px"><span class="label">Trạng thái gần nhất:</span> ${escapeHtml(item.lastAck)}</div>
+              <div style="margin-top:6px"><span class="label">Tin nhắn cuối:</span> ${escapeHtml(item.lastMessage || 'Chưa có')}</div>
+            </div>
+            <button class="reset-btn" onclick="sendReset('${pc}')">RESET</button>
+          </div>
+        `;
+      }).join('');
+
+      cardsEl.innerHTML = html || '<div class="panel">Không có máy phù hợp bộ lọc.</div>';
+      updateStats();
+    }
+
+    function setConnectionUI(connected) {
+      state.connected = connected;
+      el('connText').textContent = connected ? 'Đã kết nối' : 'Chưa kết nối';
+      el('connDot').classList.toggle('connected', connected);
+    }
+
+    function log(msg) {
+      const line = `[${fmtTime()}] ${msg}`;
+      logBox.textContent = `${line}\n${logBox.textContent}`.slice(0, 12000);
+    }
+
+    function showToast(type, title, message, timeout = 2800) {
+      const wrap = el('toastWrap');
+      const node = document.createElement('div');
+      node.className = `toast ${type}`;
+      node.innerHTML = `<div class="toast-title">${escapeHtml(title)}</div><div class="toast-msg">${escapeHtml(message)}</div>`;
+      wrap.prepend(node);
+      setTimeout(() => {
+        node.style.opacity = '0';
+        node.style.transform = 'translateY(-6px)';
+        node.style.transition = '.18s ease';
+        setTimeout(() => node.remove(), 180);
+      }, timeout);
+    }
+
+    function askResetConfirm(pc) {
+      return new Promise((resolve) => {
+        const modal = el('confirmModal');
+        const pcName = el('modalPcName');
+        const btnOk = el('modalConfirm');
+        const btnCancel = el('modalCancel');
+
+        pcName.textContent = pc;
+        modal.classList.add('show');
+
+        const cleanup = () => {
+          modal.classList.remove('show');
+          btnOk.onclick = null;
+          btnCancel.onclick = null;
+          modal.onclick = null;
+          document.onkeydown = null;
+        };
+
+        btnOk.onclick = () => { cleanup(); resolve(true); };
+        btnCancel.onclick = () => { cleanup(); resolve(false); };
+        modal.onclick = (e) => { if (e.target === modal) { cleanup(); resolve(false); } };
+        document.onkeydown = (e) => { if (e.key === 'Escape') { cleanup(); resolve(false); } };
+      });
+    }
+
+    function clearBootTimer(pc) {
+      const item = state.pcs[pc];
+      if (item.bootTimer) {
+        clearTimeout(item.bootTimer);
+        item.bootTimer = null;
+      }
+    }
+
+    function startBootTimer(pc) {
+      const item = state.pcs[pc];
+      clearBootTimer(pc);
+      const timeoutMs = Math.max(10, Number(el('bootTimeout').value || 120)) * 1000;
+
+      item.bootTimer = setTimeout(() => {
+        if (state.pcs[pc].status === 'booting' || state.pcs[pc].status === 'resetting') {
+          state.pcs[pc].status = 'bootfail';
+          state.pcs[pc].lastMessage = 'Quá thời gian chờ ONLINE';
+          state.pcs[pc].lastAck = `${fmtTime()} (BOOT_FAIL)`;
+          renderCards();
+          log(`${pc}: timeout boot -> BOOT FAIL`);
+          showToast('error', 'Boot fail', `${pc} không lên ONLINE trong thời gian chờ.`);
+        }
+      }, timeoutMs);
+    }
+
+    async function sendReset(pc) {
+      const ok = await askResetConfirm(pc);
+      if (!ok) return;
+
+      if (!state.client || !state.connected) {
+        showToast('error', 'Chưa kết nối MQTT', 'Hãy kết nối broker trước khi gửi lệnh reset.');
+        return;
+      }
+
+      const payload = el('payloadReset').value || 'RESET';
+      const topic = resetTopic(pc);
+
+      state.client.publish(topic, payload, { qos: 0, retain: false }, (err) => {
+        if (err) {
+          log(`${pc}: publish lỗi -> ${err.message}`);
+          showToast('error', 'Gửi lệnh thất bại', `${pc}: ${err.message}`);
+          return;
+        }
+
+        const item = state.pcs[pc];
+        item.lastReset = fmtTime();
+        item.lastMessage = `Đã gửi ${payload}`;
+        item.status = 'resetting';
+        clearBootTimer(pc);
+        renderCards();
+        log(`${pc}: gửi RESET -> ${topic}`);
+        showToast('success', 'Đã gửi reset', `${pc} đang được reset.`);
+      });
+    }
+
+    window.sendReset = sendReset;
+
+    async function resetAllVisible() {
+      const list = PC_LIST.filter(pc => {
+        const q = el('searchInput').value.trim().toLowerCase();
+        const filter = el('filterStatus').value;
+        const item = state.pcs[pc];
+        const okSearch = !q || pc.toLowerCase().includes(q);
+        const okFilter = filter === 'all' || item.status === filter;
+        return okSearch && okFilter;
+      });
+
+      if (!list.length) {
+        showToast('info', 'Không có máy', 'Không có máy nào phù hợp bộ lọc.');
+        return;
+      }
+
+      const ok = await askResetConfirm(`TẤT CẢ (${list.length} máy)`);
+      if (!ok) return;
+
+      for (const pc of list) {
+        sendResetDirect(pc);
+        await new Promise(r => setTimeout(r, 80));
+      }
+
+      showToast('success', 'Đã gửi reset hàng loạt', `${list.length} máy đang được reset.`);
+    }
+
+    function sendResetDirect(pc) {
+      if (!state.client || !state.connected) return;
+      const payload = el('payloadReset').value || 'RESET';
+      const topic = resetTopic(pc);
+
+      state.client.publish(topic, payload, { qos: 0, retain: false }, () => {
+        const item = state.pcs[pc];
+        item.lastReset = fmtTime();
+        item.lastMessage = `Đã gửi ${payload}`;
+        item.status = 'resetting';
+        clearBootTimer(pc);
+        renderCards();
+        log(`${pc}: gửi RESET -> ${topic}`);
+      });
+    }
+
+    function applyStatusFromMessage(topic, payloadRaw) {
+      const payload = String(payloadRaw).trim().toUpperCase();
+      const parts = topic.split('/');
+      const pc = parts[2];
+      if (!pc || !state.pcs[pc]) return;
+
+      const item = state.pcs[pc];
+      item.lastMessage = payload;
+
+      if (payload === 'ONLINE') {
+        clearBootTimer(pc);
+        item.status = 'online';
+        item.lastAck = `${fmtTime()} (ONLINE)`;
+
+      } else if (payload === 'RESETTING') {
+        clearBootTimer(pc);
+        item.status = 'resetting';
+        item.lastAck = `${fmtTime()} (RESETTING)`;
+        showToast('info', 'Đang reset', `${pc} đang xử lý lệnh reset.`, 1800);
+
+      } else if (payload === 'RESET_DONE' || payload === 'ACK_RESET' || payload === 'READY') {
+        item.status = 'booting';
+        item.lastAck = `${fmtTime()} (${payload})`;
+        startBootTimer(pc);
+        showToast('info', 'Đang boot', `${pc} đã reset xong, đang chờ Windows lên.`, 1800);
+
+      } else if (payload === 'OFFLINE') {
+        clearBootTimer(pc);
+        item.status = 'offline';
+        item.lastAck = `${fmtTime()} (OFFLINE)`;
+        showToast('error', 'Offline', `${pc} đang offline.`, 1800);
+
+      } else if (payload === 'BOOT_LOCK') {
+        clearBootTimer(pc);
+        item.status = 'bootlock';
+        item.lastAck = `${fmtTime()} (BOOT_LOCK)`;
+        showToast('info', 'Boot lock', `${pc} đang trong thời gian khóa reset.`, 1800);
+
+      } else {
+        if (item.status === 'unknown') {
+          item.status = 'online';
+        }
+      }
+
+      renderCards();
+      log(`${pc}: nhận ${payload} từ ${topic}`);
+    }
+
+    function connectMqtt() {
+      const url = el('brokerUrl').value.trim();
+      const clientId = el('clientId').value.trim() || genClientId();
+      el('clientId').value = clientId;
+
+      if (state.client) {
+        try { state.client.end(true); } catch {}
+      }
+
+      setConnectionUI(false);
+      log(`Đang kết nối ${url} ...`);
+
+      state.client = mqtt.connect(url, {
+        clientId,
+        clean: true,
+        reconnectPeriod: 3000,
+        connectTimeout: 10000
+      });
+
+      state.client.on('connect', () => {
+        setConnectionUI(true);
+        state.client.subscribe(STATUS_SUB, { qos: 0 }, (err) => {
+          if (err) {
+            log(`Subscribe lỗi: ${err.message}`);
+            showToast('error', 'Subscribe lỗi', err.message);
+            return;
+          }
+          log(`Đã subscribe ${STATUS_SUB}`);
+          showToast('success', 'Kết nối thành công', `Đã subscribe ${STATUS_SUB}`);
+        });
+      });
+
+      state.client.on('message', (topic, payload) => applyStatusFromMessage(topic, payload));
+      state.client.on('reconnect', () => log('Đang reconnect MQTT...'));
+      state.client.on('close', () => setConnectionUI(false));
+      state.client.on('offline', () => setConnectionUI(false));
+      state.client.on('error', (err) => {
+        log(`MQTT lỗi: ${err.message}`);
+        showToast('error', 'MQTT lỗi', err.message);
+      });
+    }
+
+    function disconnectMqtt() {
+      if (!state.client) return;
+      state.client.end(true);
+      setConnectionUI(false);
+      log('Đã ngắt kết nối.');
+      showToast('info', 'Đã ngắt kết nối', 'Dashboard đã ngắt khỏi MQTT.');
+    }
+
+    function bindEvents() {
+      el('btnConnect').addEventListener('click', connectMqtt);
+      el('btnDisconnect').addEventListener('click', disconnectMqtt);
+      el('btnNewId').addEventListener('click', () => el('clientId').value = genClientId());
+      el('btnSave').addEventListener('click', saveConfig);
+      el('btnResetAll').addEventListener('click', resetAllVisible);
+      el('btnClearLog').addEventListener('click', () => logBox.textContent = '');
+      el('searchInput').addEventListener('input', renderCards);
+      el('filterStatus').addEventListener('change', renderCards);
+      el('subTopicText').textContent = STATUS_SUB;
+    }
+
+    function createSakuraBackground() {
+      const layer = el('sakuraDrift');
+      const count = window.innerWidth < 640 ? 24 : 42;
+      layer.innerHTML = '';
+
+      for (let i = 0; i < count; i++) {
+        const petal = document.createElement('span');
+        petal.className = 'petal';
+        petal.style.left = Math.random() * 100 + 'vw';
+        petal.style.animationDuration = 10 + Math.random() * 10 + 's';
+        petal.style.animationDelay = Math.random() * 10 + 's';
+        petal.style.opacity = 0.45 + Math.random() * 0.55;
+        petal.style.transform = `scale(${0.7 + Math.random() * 0.8})`;
+        layer.appendChild(petal);
+      }
+    }
+
+    function createSakuraBurst(x, y, amount = 12) {
+      for (let i = 0; i < amount; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'sakura-burst';
+        const dx = (Math.random() - 0.5) * 180 + 'px';
+        const dy = (Math.random() - 0.5) * 180 + 'px';
+        const rot = Math.round((Math.random() - 0.5) * 360) + 'deg';
+        petal.style.left = x + 'px';
+        petal.style.top = y + 'px';
+        petal.style.setProperty('--x', dx);
+        petal.style.setProperty('--y', dy);
+        petal.style.setProperty('--r', rot);
+        document.body.appendChild(petal);
+        setTimeout(() => petal.remove(), 1000);
+      }
+    }
+
+    function bindSakuraClicks() {
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX || rect.left + rect.width / 2;
+        const y = e.clientY || rect.top + rect.height / 2;
+        createSakuraBurst(x, y, btn.id === 'btnResetAll' ? 20 : 12);
+      });
+    }
+
+    loadConfig();
+    initState();
+    bindEvents();
+    bindSakuraClicks();
+    createSakuraBackground();
+    renderCards();
+    log('Trang đã sẵn sàng.');
+    connectMqtt();
+
+    window.addEventListener('resize', createSakuraBackground);
+  </script>
+</body>
+</html>
