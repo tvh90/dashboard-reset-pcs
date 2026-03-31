@@ -594,6 +594,11 @@
       color: var(--muted);
     }
 
+    .left-panel-content {
+      display: grid;
+      gap: 18px;
+    }
+
     .quick-actions {
       display: grid;
       grid-template-columns: 1fr 260px;
@@ -602,7 +607,6 @@
     }
 
     .stats-board {
-      margin-top: 18px;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
@@ -1232,10 +1236,98 @@
       }
     }
 
+    .group-panel {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(125,249,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.025) 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .group-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    .group-toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: end;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    .select-themed,
+    .select-themed option {
+      background: #09153a;
+      color: #effbff;
+    }
+
+    .select-themed option {
+      padding: 10px;
+    }
+
+    .group-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .group-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+      width: 100%;
+    }
+
+    .group-chip {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 10px;
+      align-items: start;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(125,249,255,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      font-size: 12px;
+      color: #edf8ff;
+      overflow: hidden;
+    }
+
+    .group-chip b {
+      color: #ffffff;
+      word-break: break-word;
+    }
+
+    .group-chip span {
+      display: block;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.6;
+    }
+
+    .section-note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 8px;
+    }
+
     @media (max-width: 980px) {
       .top-grid { grid-template-columns: 1fr; }
       .quick-actions { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
+      .group-grid, .group-toolbar, .group-actions, .stats-board { grid-template-columns: 1fr; }
       .wrap { padding: 22px 16px 38px; }
       .panel, .card { border-radius: 24px; }
       .moon-glow {
@@ -1255,6 +1347,7 @@
       .cards,
       .stats-board { grid-template-columns: 1fr; }
       .moon-glow { width: 180px; height: 180px; }
+      .group-chip { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1275,41 +1368,71 @@
 
     <div class="top-grid">
       <div class="panel">
-        <h2>Kết nối MQTT</h2>
-        <div class="status-row">
-          <span class="pill"><span id="connDot" class="dot"></span><span id="connText">Chưa kết nối</span></span>
-          <span class="pill">Subscribe: <b id="subTopicText">farm/pc/+/status</b></span>
-        </div>
+        <div class="left-panel-content">
+          <div>
+            <h2>Kết nối MQTT</h2>
+            <div class="status-row">
+              <span class="pill"><span id="connDot" class="dot"></span><span id="connText">Chưa kết nối</span></span>
+              <span class="pill">Subscribe: <b id="subTopicText">farm/pc/+/status</b></span>
+            </div>
 
-        <div class="form-grid">
-          <div class="field">
-            <label for="brokerUrl">Broker WebSocket URL</label>
-            <input id="brokerUrl" value="wss://broker.hivemq.com:8884/mqtt" />
-          </div>
-          <div class="field">
-            <label for="clientId">Client ID</label>
-            <input id="clientId" />
-          </div>
-          <div class="field">
-            <label for="payloadReset">Payload reset</label>
-            <input id="payloadReset" value="RESET" />
-          </div>
-          <div class="field">
-            <label for="bootTimeout">Timeout boot fail (giây)</label>
-            <input id="bootTimeout" type="number" min="10" value="120" />
-          </div>
-        </div>
+            <div class="form-grid">
+              <input id="brokerUrl" type="hidden" value="wss://broker.hivemq.com:8884/mqtt" />
+              <div class="field">
+                <label for="clientId">Client ID</label>
+                <input id="clientId" />
+              </div>
+              <div class="field">
+                <label for="payloadReset">Payload reset</label>
+                <input id="payloadReset" value="RESET" />
+              </div>
+              <div class="field">
+                <label for="bootTimeout">Timeout boot fail (giây)</label>
+                <input id="bootTimeout" type="number" min="10" value="120" />
+              </div>
+            </div>
 
-        <div class="btn-row">
-          <button id="btnConnect" class="btn-blue">Kết nối</button>
-          <button id="btnDisconnect" class="btn-gray">Ngắt kết nối</button>
-          <button id="btnNewId" class="btn-yellow">Tạo ID mới</button>
-          <button id="btnSave" class="btn-green">Lưu cấu hình</button>
-        </div>
+            <div class="btn-row">
+              <button id="btnConnect" class="btn-blue">Kết nối</button>
+              <button id="btnDisconnect" class="btn-gray">Ngắt kết nối</button>
+              <button id="btnNewId" class="btn-yellow">Tạo ID mới</button>
+              <button id="btnSave" class="btn-green">Lưu cấu hình</button>
+            </div>
 
-        <div class="help">
-          Flow chuẩn: <b>RESETTING → BOOTING → ONLINE</b>.<br/>
-          Nếu quá thời gian chờ mà không nhận được <b>ONLINE</b> từ PC, máy sẽ thành <b>BOOT FAIL</b>.
+            <div class="help">
+              Flow chuẩn: <b>RESETTING → BOOTING → ONLINE</b>.<br/>
+              Nếu quá thời gian chờ mà không nhận được <b>ONLINE</b> từ PC, máy sẽ thành <b>BOOT FAIL</b>.
+            </div>
+          </div>
+
+          <div class="stats-board">
+            <div class="stat-card online-stat">
+              <div class="stat-top">
+                <div class="stat-label">Online</div>
+                <span class="stat-dot online-dot"></span>
+              </div>
+              <div id="countOnline" class="stat-value">0</div>
+              <div class="stat-sub">Số máy đang hoạt động bình thường</div>
+            </div>
+
+            <div class="stat-card bootfail-stat">
+              <div class="stat-top">
+                <div class="stat-label">Boot Fail</div>
+                <span class="stat-dot bootfail-dot"></span>
+              </div>
+              <div id="countBootFail" class="stat-value">0</div>
+              <div class="stat-sub">Số máy reset xong nhưng không lên Windows</div>
+            </div>
+
+            <div class="stat-card offline-stat">
+              <div class="stat-top">
+                <div class="stat-label">Offline</div>
+                <span class="stat-dot offline-dot"></span>
+              </div>
+              <div id="countOffline" class="stat-value">0</div>
+              <div class="stat-sub">Số máy hiện không kết nối hoặc mất tín hiệu</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1317,7 +1440,7 @@
         <h2>Điều khiển nhanh</h2>
         <div class="quick-actions">
           <input id="searchInput" class="search" placeholder="Tìm PC, ví dụ: PC01 hoặc 01" />
-          <select id="filterStatus">
+          <select id="filterStatus" class="select-themed">
             <option value="all">Tất cả</option>
             <option value="unknown">Unknown</option>
             <option value="online">Online</option>
@@ -1328,38 +1451,60 @@
             <option value="bootlock">Boot Lock</option>
           </select>
         </div>
-        <div class="btn-row">
-          <button id="btnResetAll" class="btn-red">RESET ALL</button>
-          <button id="btnClearLog" class="btn-gray" style="display:none;">Xóa log</button>
+
+        <div class="group-panel">
+          <div class="group-grid">
+            <div class="field">
+              <label for="groupName">Tên nhóm</label>
+              <input id="groupName" placeholder="Ví dụ: Nhóm 1" />
+            </div>
+            <div class="field">
+              <label for="groupSpec">Danh sách PC</label>
+              <input id="groupSpec" placeholder="Ví dụ: PC01-PC20 hoặc PC01,PC05,PC09" />
+            </div>
+          </div>
+
+          <div class="group-toolbar">
+            <div class="field">
+              <label for="appendGroupSelect">Thêm PC vào nhóm có sẵn</label>
+              <select id="appendGroupSelect" class="select-themed">
+                <option value="">Chọn nhóm để thêm PC</option>
+              </select>
+            </div>
+            <button id="btnAddGroup" class="btn-green">Tạo / Cập nhật nhóm</button>
+            <button id="btnAppendGroup" class="btn-blue">Thêm PC vào nhóm</button>
+          </div>
+
+          <div class="section-note">
+            Bạn có thể tạo nhóm bất kỳ và thêm PC ngẫu nhiên nhiều lần. Ví dụ <b>PC01,PC09,PC25</b> hoặc <b>PC01-PC05,PC09,PC20</b>.
+          </div>
+
+          <div class="group-actions">
+            <div class="field">
+              <label for="filterGroup">Xem theo nhóm</label>
+              <select id="filterGroup" class="select-themed">
+                <option value="all">Tất cả nhóm</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="resetGroupSelect">Chọn nhóm để reset</label>
+              <select id="resetGroupSelect" class="select-themed">
+                <option value="">Chọn nhóm để reset</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button id="btnResetGroup" class="btn-red">RESET NHÓM</button>
+          </div>
+
+          <div id="groupList" class="group-list"></div>
         </div>
 
-        <div class="stats-board">
-          <div class="stat-card online-stat">
-            <div class="stat-top">
-              <div class="stat-label">Online</div>
-              <span class="stat-dot online-dot"></span>
-            </div>
-            <div id="countOnline" class="stat-value">0</div>
-            <div class="stat-sub">Số máy đang hoạt động bình thường</div>
-          </div>
-
-          <div class="stat-card bootfail-stat">
-            <div class="stat-top">
-              <div class="stat-label">Boot Fail</div>
-              <span class="stat-dot bootfail-dot"></span>
-            </div>
-            <div id="countBootFail" class="stat-value">0</div>
-            <div class="stat-sub">Số máy reset xong nhưng không lên Windows</div>
-          </div>
-
-          <div class="stat-card offline-stat">
-            <div class="stat-top">
-              <div class="stat-label">Offline</div>
-              <span class="stat-dot offline-dot"></span>
-            </div>
-            <div id="countOffline" class="stat-value">0</div>
-            <div class="stat-sub">Số máy hiện không kết nối hoặc mất tín hiệu</div>
-          </div>
+        <div class="btn-row">
+          <button id="btnResetAll" class="btn-red">RESET ALL</button>
+          <button id="btnDeleteSelectedGroup" class="btn-red">XÓA NHÓM</button>
+          <button id="btnClearLog" class="btn-gray" style="display:none;">Xóa log</button>
         </div>
 
         <div class="help" style="display:none;">HungTV</div>
@@ -1399,16 +1544,19 @@
       "PC61","PC62","PC63","PC64","PC65","PC66","PC67","PC68","PC69","PC70",
       "PC71","PC72","PC73","PC74","PC75","PC76","PC77","PC78","PC79","PC80",
       "PC81","PC82","PC83","PC84","PC85","PC86","PC87","PC88","PC89","PC90",
-      "PC91","PC92","PC93","PC94","PC95","PC96","PC97","PC98","PC99","PC100"
+      "PC91","PC92","PC93","PC94","PC95","PC96","PC97","PC98","PC99","PC100","PC101"
     ];
 
     const TOPIC_PREFIX = "farm/pc";
     const STATUS_SUB = `${TOPIC_PREFIX}/+/status`;
 
+    const GROUP_STORAGE_KEY = 'mqtt_dashboard_groups';
+
     const state = {
       client: null,
       connected: false,
-      pcs: {}
+      pcs: {},
+      groups: []
     };
 
     const el = (id) => document.getElementById(id);
@@ -1433,11 +1581,291 @@
     }
 
     function resetTopic(pc) {
-      return `${TOPIC_PREFIX}/${pc}/reset`;
+      const mqttPc = pc.split('-')[0];
+      return `${TOPIC_PREFIX}/${mqttPc}/reset`;
     }
 
     function statusTopic(pc) {
-      return `${TOPIC_PREFIX}/${pc}/status`;
+      const mqttPc = pc.split('-')[0];
+      return `${TOPIC_PREFIX}/${mqttPc}/status`;
+    }
+
+    function saveGroups() {
+      localStorage.setItem(GROUP_STORAGE_KEY, JSON.stringify(state.groups));
+    }
+
+    function loadGroups() {
+      try {
+        const raw = localStorage.getItem(GROUP_STORAGE_KEY);
+        state.groups = raw ? JSON.parse(raw) : [];
+      } catch {
+        state.groups = [];
+      }
+    }
+
+    function normalizePcName(pc) {
+      const raw = String(pc || '').trim().toUpperCase().replace(/\s+/g, '');
+      const match = raw.match(/^PC(\d{1,3})(-[A-Z0-9]+)?$/);
+      if (!match) return '';
+
+      const numberPart = 'PC' + String(Number(match[1])).padStart(2, '0');
+      const suffix = match[2] || '';
+      return numberPart + suffix;
+    }
+
+    function parseGroupSpec(spec) {
+      const result = [];
+      const seen = new Set();
+
+      String(spec || '')
+        .split(',')
+        .map(part => part.trim())
+        .filter(Boolean)
+        .forEach(part => {
+          const clean = part.toUpperCase().replace(/\s+/g, '');
+
+          const range = clean.match(/^PC(\d{1,3})-PC(\d{1,3})$/);
+          if (range) {
+            const start = Number(range[1]);
+            const end = Number(range[2]);
+            const from = Math.min(start, end);
+            const to = Math.max(start, end);
+
+            for (let i = from; i <= to; i++) {
+              const pc = 'PC' + String(i).padStart(2, '0');
+              const matchedPc =
+                PC_LIST.find(item => item.split('-')[0] === pc) || pc;
+
+              if (PC_LIST.includes(matchedPc) && !seen.has(matchedPc)) {
+                seen.add(matchedPc);
+                result.push(matchedPc);
+              }
+            }
+            return;
+          }
+
+          const single = normalizePcName(clean);
+          if (!single) return;
+
+          const matchedPc =
+            PC_LIST.find(item => item === single) ||
+            PC_LIST.find(item => item.split('-')[0] === single) ||
+            null;
+
+          if (matchedPc && !seen.has(matchedPc)) {
+            seen.add(matchedPc);
+            result.push(matchedPc);
+          }
+        });
+
+      return result;
+    }
+
+    function getGroupByName(name) {
+      return state.groups.find(group => group.name === name);
+    }
+
+    function mergePcLists(baseList, extraList) {
+      const merged = [];
+      const seen = new Set();
+      [...baseList, ...extraList].forEach(pc => {
+        if (!seen.has(pc)) {
+          seen.add(pc);
+          merged.push(pc);
+        }
+      });
+      return merged;
+    }
+
+    function buildGroupSpecFromPcs(pcs) {
+      return pcs.join(',');
+    }
+
+    function renderGroupControls() {
+      const filterGroup = el('filterGroup');
+      const resetGroupSelect = el('resetGroupSelect');
+      const appendGroupSelect = el('appendGroupSelect');
+      const currentFilter = filterGroup ? filterGroup.value : 'all';
+      const currentReset = resetGroupSelect ? resetGroupSelect.value : '';
+      const currentAppend = appendGroupSelect ? appendGroupSelect.value : '';
+
+      if (filterGroup) {
+        filterGroup.innerHTML = '<option value="all">Tất cả nhóm</option>' + state.groups.map(group =>
+          `<option value="${escapeHtml(group.name)}">${escapeHtml(group.name)} (${group.pcs.length} PC)</option>`
+        ).join('');
+        filterGroup.value = state.groups.some(group => group.name === currentFilter) ? currentFilter : 'all';
+      }
+
+      if (resetGroupSelect) {
+        resetGroupSelect.innerHTML = '<option value="">Chọn nhóm để reset</option>' + state.groups.map(group =>
+          `<option value="${escapeHtml(group.name)}">${escapeHtml(group.name)} (${group.pcs.length} PC)</option>`
+        ).join('');
+        resetGroupSelect.value = state.groups.some(group => group.name === currentReset) ? currentReset : '';
+      }
+
+      if (appendGroupSelect) {
+        appendGroupSelect.innerHTML = '<option value="">Chọn nhóm để thêm PC</option>' + state.groups.map(group =>
+          `<option value="${escapeHtml(group.name)}">${escapeHtml(group.name)} (${group.pcs.length} PC)</option>`
+        ).join('');
+        appendGroupSelect.value = state.groups.some(group => group.name === currentAppend) ? currentAppend : '';
+      }
+
+      const groupList = el('groupList');
+      if (groupList) {
+        groupList.innerHTML = state.groups.length
+          ? state.groups.map(group => `
+              <div class="group-chip">
+                <b>${escapeHtml(group.name)}</b>
+                <span>${escapeHtml(group.spec)}</span>
+              </div>
+            `).join('')
+          : '<div class="section-note">Chưa có nhóm nào.</div>';
+      }
+    }
+
+    function addGroup() {
+      const name = el('groupName').value.trim();
+      const spec = el('groupSpec').value.trim();
+
+      if (!name) {
+        showToast('error', 'Thiếu tên nhóm', 'Hãy nhập tên nhóm trước.');
+        return;
+      }
+
+      const pcs = parseGroupSpec(spec);
+      if (!pcs.length) {
+        showToast('error', 'Nhóm không hợp lệ', 'Danh sách PC không đúng định dạng hoặc không tồn tại.');
+        return;
+      }
+
+      const existingIndex = state.groups.findIndex(group => group.name.toLowerCase() === name.toLowerCase());
+      const group = { name, spec, pcs };
+
+      if (existingIndex >= 0) {
+        state.groups[existingIndex] = group;
+        showToast('success', 'Đã cập nhật nhóm', `${name}: ${pcs.length} PC`);
+      } else {
+        state.groups.push(group);
+        showToast('success', 'Đã thêm nhóm', `${name}: ${pcs.length} PC`);
+      }
+
+      state.groups.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+      saveGroups();
+      renderGroupControls();
+      el('groupName').value = '';
+      el('groupSpec').value = '';
+      renderCards();
+    }
+
+    function appendToGroup() {
+      const targetName = el('appendGroupSelect').value;
+      const spec = el('groupSpec').value.trim();
+
+      if (!targetName) {
+        showToast('info', 'Chưa chọn nhóm', 'Hãy chọn nhóm có sẵn để thêm PC.');
+        return;
+      }
+
+      const pcs = parseGroupSpec(spec);
+      if (!pcs.length) {
+        showToast('error', 'PC không hợp lệ', 'Hãy nhập danh sách PC đúng định dạng để thêm vào nhóm.');
+        return;
+      }
+
+      const group = getGroupByName(targetName);
+      if (!group) {
+        showToast('error', 'Không tìm thấy nhóm', 'Nhóm bạn chọn không còn tồn tại.');
+        renderGroupControls();
+        return;
+      }
+
+      const beforeCount = group.pcs.length;
+      group.pcs = mergePcLists(group.pcs, pcs);
+      group.spec = buildGroupSpecFromPcs(group.pcs);
+      const addedCount = group.pcs.length - beforeCount;
+
+      saveGroups();
+      renderGroupControls();
+      renderCards();
+      el('groupSpec').value = '';
+
+      if (addedCount > 0) {
+        showToast('success', 'Đã thêm PC vào nhóm', `${group.name}: thêm ${addedCount} PC mới.`);
+      } else {
+        showToast('info', 'Không có PC mới', 'Các PC này đã có sẵn trong nhóm.');
+      }
+    }
+
+    function deleteGroup(name) {
+      state.groups = state.groups.filter(group => group.name !== name);
+      saveGroups();
+      renderGroupControls();
+      renderCards();
+      showToast('info', 'Đã xóa nhóm', name);
+    }
+
+    function deleteSelectedGroup() {
+      const selectedName = el('resetGroupSelect').value;
+
+      if (!selectedName) {
+        showToast('info', 'Chưa chọn nhóm', 'Hãy chọn nhóm ở mục "Chọn nhóm để reset" trước.');
+        return;
+      }
+
+      const group = getGroupByName(selectedName);
+      if (!group) {
+        showToast('error', 'Không tìm thấy nhóm', 'Nhóm đang chọn không còn tồn tại.');
+        renderGroupControls();
+        return;
+      }
+
+      state.groups = state.groups.filter(item => item.name !== selectedName);
+      saveGroups();
+      renderGroupControls();
+      renderCards();
+      showToast('success', 'Đã xóa nhóm', selectedName);
+    }
+
+    window.deleteGroup = deleteGroup;
+
+    function getVisiblePcList() {
+      const q = el('searchInput').value.trim().toLowerCase();
+      const filter = el('filterStatus').value;
+      const groupName = el('filterGroup') ? el('filterGroup').value : 'all';
+      const selectedGroup = groupName !== 'all' ? getGroupByName(groupName) : null;
+      const groupSet = selectedGroup ? new Set(selectedGroup.pcs) : null;
+
+      return PC_LIST.filter(pc => {
+        const item = state.pcs[pc];
+        const okSearch = !q || pc.toLowerCase().includes(q);
+        const okFilter = filter === 'all' || item.status === filter;
+        const okGroup = !groupSet || groupSet.has(pc);
+        return okSearch && okFilter && okGroup;
+      });
+    }
+
+    async function resetSelectedGroup() {
+      const groupName = el('resetGroupSelect').value;
+      if (!groupName) {
+        showToast('info', 'Chưa chọn nhóm', 'Hãy chọn nhóm cần reset.');
+        return;
+      }
+
+      const group = getGroupByName(groupName);
+      if (!group || !group.pcs.length) {
+        showToast('error', 'Nhóm không hợp lệ', 'Không tìm thấy PC trong nhóm này.');
+        return;
+      }
+
+      const ok = await askResetConfirm(`${group.name} (${group.pcs.length} máy)`);
+      if (!ok) return;
+
+      for (const pc of group.pcs) {
+        sendResetDirect(pc);
+        await new Promise(r => setTimeout(r, 80));
+      }
+
+      showToast('success', 'Đã gửi reset nhóm', `${group.name}: ${group.pcs.length} máy`);
     }
 
     function saveConfig() {
@@ -1503,12 +1931,12 @@
       })[status] || 'Unknown';
     }
 
-    function updateStats() {
+    function updateStats(list = PC_LIST) {
       let online = 0;
       let bootfail = 0;
       let offline = 0;
 
-      PC_LIST.forEach(pc => {
+      list.forEach(pc => {
         const status = state.pcs[pc].status;
         if (status === 'online') online++;
         if (status === 'bootfail') bootfail++;
@@ -1521,15 +1949,9 @@
     }
 
     function renderCards() {
-      const q = el('searchInput').value.trim().toLowerCase();
-      const filter = el('filterStatus').value;
+      const visiblePcs = getVisiblePcList();
 
-      const html = PC_LIST.filter(pc => {
-        const item = state.pcs[pc];
-        const okSearch = !q || pc.toLowerCase().includes(q);
-        const okFilter = filter === 'all' || item.status === filter;
-        return okSearch && okFilter;
-      }).map(pc => {
+      const html = visiblePcs.map(pc => {
         const item = state.pcs[pc];
         return `
           <div class="card status-${escapeHtml(item.status)}">
@@ -1553,7 +1975,7 @@
       }).join('');
 
       cardsEl.innerHTML = html || '<div class="panel">Không có máy phù hợp bộ lọc.</div>';
-      updateStats();
+      updateStats(visiblePcs);
     }
 
     function setConnectionUI(connected) {
@@ -1664,14 +2086,7 @@
     window.sendReset = sendReset;
 
     async function resetAllVisible() {
-      const list = PC_LIST.filter(pc => {
-        const q = el('searchInput').value.trim().toLowerCase();
-        const filter = el('filterStatus').value;
-        const item = state.pcs[pc];
-        const okSearch = !q || pc.toLowerCase().includes(q);
-        const okFilter = filter === 'all' || item.status === filter;
-        return okSearch && okFilter;
-      });
+      const list = getVisiblePcList();
 
       if (!list.length) {
         showToast('info', 'Không có máy', 'Không có máy nào phù hợp bộ lọc.');
@@ -1708,7 +2123,10 @@
     function applyStatusFromMessage(topic, payloadRaw) {
       const payload = String(payloadRaw).trim().toUpperCase();
       const parts = topic.split('/');
-      const pc = parts[2];
+      const mqttPc = parts[2];
+      if (!mqttPc) return;
+
+      const pc = Object.keys(state.pcs).find(name => name.split('-')[0] === mqttPc);
       if (!pc || !state.pcs[pc]) return;
 
       const item = state.pcs[pc];
@@ -1718,31 +2136,26 @@
         clearBootTimer(pc);
         item.status = 'online';
         item.lastAck = `${fmtTime()} (ONLINE)`;
-
       } else if (payload === 'RESETTING') {
         clearBootTimer(pc);
         item.status = 'resetting';
         item.lastAck = `${fmtTime()} (RESETTING)`;
         showToast('info', 'Đang reset', `${pc} đang xử lý lệnh reset.`, 1800);
-
       } else if (payload === 'RESET_DONE' || payload === 'ACK_RESET' || payload === 'READY') {
         item.status = 'booting';
         item.lastAck = `${fmtTime()} (${payload})`;
         startBootTimer(pc);
         showToast('info', 'Đang boot', `${pc} đã reset xong, đang chờ Windows lên.`, 1800);
-
       } else if (payload === 'OFFLINE') {
         clearBootTimer(pc);
         item.status = 'offline';
         item.lastAck = `${fmtTime()} (OFFLINE)`;
         showToast('error', 'Offline', `${pc} đang offline.`, 1800);
-
       } else if (payload === 'BOOT_LOCK') {
         clearBootTimer(pc);
         item.status = 'bootlock';
         item.lastAck = `${fmtTime()} (BOOT_LOCK)`;
         showToast('info', 'Boot lock', `${pc} đang trong thời gian khóa reset.`, 1800);
-
       } else {
         if (item.status === 'unknown') {
           item.status = 'online';
@@ -1809,9 +2222,18 @@
       el('btnNewId').addEventListener('click', () => el('clientId').value = genClientId());
       el('btnSave').addEventListener('click', saveConfig);
       el('btnResetAll').addEventListener('click', resetAllVisible);
+      el('btnDeleteSelectedGroup').addEventListener('click', deleteSelectedGroup);
+      el('btnResetGroup').addEventListener('click', resetSelectedGroup);
+      el('btnAddGroup').addEventListener('click', addGroup);
+      el('btnAppendGroup').addEventListener('click', appendToGroup);
       el('btnClearLog').addEventListener('click', () => logBox.textContent = '');
       el('searchInput').addEventListener('input', renderCards);
       el('filterStatus').addEventListener('change', renderCards);
+      el('filterGroup').addEventListener('change', renderCards);
+      el('appendGroupSelect').addEventListener('change', () => {
+        const selected = el('appendGroupSelect').value;
+        if (selected) el('groupName').value = selected;
+      });
       el('subTopicText').textContent = STATUS_SUB;
     }
 
@@ -1861,10 +2283,12 @@
     }
 
     loadConfig();
+    loadGroups();
     initState();
     bindEvents();
     bindSakuraClicks();
     createSakuraBackground();
+    renderGroupControls();
     renderCards();
     log('Trang đã sẵn sàng.');
     connectMqtt();
