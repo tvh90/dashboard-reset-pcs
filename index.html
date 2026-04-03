@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -3663,6 +3666,59 @@ h1::after {
   box-shadow: none !important;
 }
 
+
+/* ===== RESET STATE SIMULATION ===== */
+.card.status-resetting {
+  border-color: rgba(240,185,11,.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 18px 42px rgba(0,0,0,.36),
+    0 0 30px rgba(240,185,11,.14) !important;
+}
+
+.card.status-resetting .badge {
+  background: rgba(240,185,11,.14) !important;
+  color: #f0b90b !important;
+  border-color: rgba(240,185,11,.22) !important;
+}
+
+.card.status-resetting .signal-pill {
+  color: #f0b90b !important;
+  background: rgba(240,185,11,.12) !important;
+  border-color: rgba(240,185,11,.18) !important;
+}
+
+.card.status-resetting .signal-pill .signal-dot {
+  background: #f0b90b !important;
+  color: #f0b90b !important;
+  box-shadow: 0 0 10px rgba(240,185,11,.35) !important;
+}
+
+.reset-btn[disabled] {
+  cursor: wait !important;
+  opacity: .96 !important;
+}
+
+.reset-btn .btn-spinner {
+  display: none;
+  width: 12px;
+  height: 12px;
+  margin-left: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(22,26,31,.22);
+  border-top-color: rgba(22,26,31,.88);
+  animation: resetSpin .7s linear infinite;
+  vertical-align: middle;
+}
+
+.reset-btn.is-resetting .btn-spinner {
+  display: inline-block;
+}
+
+@keyframes resetSpin {
+  to { transform: rotate(360deg); }
+}
+
 </style>
 </head>
 <body>
@@ -4576,7 +4632,7 @@ function getLastHeartbeatAt(item) {
             <div class="card-footer-note">桜が満開だ。</div>
           </div>
 
-          <button class="reset-btn" onclick="sendReset('${pc}')"><span class="btn-label">RESET ${escapeHtml(pc)}</span></button>
+          <button class="reset-btn btn-reset" onclick="sendReset('${pc}')"><span class="btn-label">RESET ${escapeHtml(pc)}</span><span class="btn-spinner"></span></button>
           ${item.status === 'reset-failed' ? `<button class="retry-btn" onclick="retryReset('${pc}')">THỬ LẠI ${escapeHtml(pc)}</button>` : ''}
         </div>
       `;
@@ -4680,22 +4736,28 @@ ${logBox.textContent}`.slice(0, 12000);
     }
   }
 
-  function startResetTimeout(pc, timeoutMs = 30000) {
+  function startResetTimeout(pc, timeoutMs = null) {
     clearResetTimer(pc);
     if (!state.pcs[pc]) return;
+
+    const configuredTimeoutMs = Math.max(10000, getHeartbeatTimeoutMs());
+    const effectiveTimeoutMs = Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0
+      ? Number(timeoutMs)
+      : configuredTimeoutMs;
+
     state.pcs[pc].awaitingResetDone = true;
     state.resetTimers[pc] = setTimeout(() => {
       const item = state.pcs[pc];
       if (!item || !item.awaitingResetDone) return;
+
       delete state.resetTimers[pc];
-      item.awaitingResetDone = false;
-      item.status = 'reset-failed';
-      item.lastMessage = 'Gửi lệnh reset không thành công';
+      item.status = 'waiting';
+      item.lastMessage = `Đã gửi lệnh reset, vẫn đang chờ máy online (${Math.round(effectiveTimeoutMs / 1000)}s+)`;
+      hideResetProgress(pc);
       renderCards();
-      showResetFailModal(pc);
-      showToast('error', 'Gửi lệnh thất bại', `${pc} gửi lệnh reset không thành công.`);
-      log(`${pc}: gửi lệnh reset không thành công`);
-    }, timeoutMs);
+      showToast('info', 'Đang chờ máy online', `${pc} đã nhận lệnh reset, tiếp tục chờ máy online.`);
+      log(`${pc}: quá ${Math.round(effectiveTimeoutMs / 1000)}s vẫn chưa online, tiếp tục giữ trạng thái chờ online`);
+    }, effectiveTimeoutMs);
   }
 
   function publishResetThreeTimes(pc) {
@@ -4750,21 +4812,17 @@ ${logBox.textContent}`.slice(0, 12000);
     item.lastResetAt = Date.now();
     item.lastMessage = 'Đang gửi RESET_789XYZ x3';
     item.status = 'resetting';
+    item.awaitingResetDone = true;
     renderCards();
 
     try {
       await publishResetThreeTimes(pc);
-
-      setTimeout(() => {
-        clearResetTimer(pc);
-        hideResetProgress(pc);
-        item.awaitingResetDone = false;
-        item.status = 'waiting';
-        item.lastMessage = 'Đã gửi lệnh reset thành công (x3)';
-        renderCards();
-        showToast('success', 'Đã gửi lệnh reset thành công', `${pc} đã gửi lệnh reset.`);
-        log(`${pc}: đã gửi lệnh reset thành công x3`);
-      }, 10000);
+      startResetTimeout(pc);
+      item.status = 'resetting';
+      item.lastMessage = 'Đã gửi lệnh reset thành công, đang chờ máy online';
+      renderCards();
+      showToast('success', 'Đã gửi lệnh reset thành công', `${pc} đang resetting, chờ máy online.`);
+      log(`${pc}: đã gửi lệnh reset thành công, giữ trạng thái resetting cho đến khi online`);
     } catch (err) {
       clearResetTimer(pc);
       hideResetProgress(pc);
@@ -5532,6 +5590,7 @@ ${logBox.textContent}`.slice(0, 12000);
   });
 })();
 </script>
+
 
 
 </body>
