@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -3664,59 +3665,6 @@ h1::after {
   box-shadow: none !important;
 }
 
-
-/* ===== RESET STATE SIMULATION ===== */
-.card.status-resetting {
-  border-color: rgba(240,185,11,.28) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.05),
-    0 18px 42px rgba(0,0,0,.36),
-    0 0 30px rgba(240,185,11,.14) !important;
-}
-
-.card.status-resetting .badge {
-  background: rgba(240,185,11,.14) !important;
-  color: #f0b90b !important;
-  border-color: rgba(240,185,11,.22) !important;
-}
-
-.card.status-resetting .signal-pill {
-  color: #f0b90b !important;
-  background: rgba(240,185,11,.12) !important;
-  border-color: rgba(240,185,11,.18) !important;
-}
-
-.card.status-resetting .signal-pill .signal-dot {
-  background: #f0b90b !important;
-  color: #f0b90b !important;
-  box-shadow: 0 0 10px rgba(240,185,11,.35) !important;
-}
-
-.reset-btn[disabled] {
-  cursor: wait !important;
-  opacity: .96 !important;
-}
-
-.reset-btn .btn-spinner {
-  display: none;
-  width: 12px;
-  height: 12px;
-  margin-left: 10px;
-  border-radius: 50%;
-  border: 2px solid rgba(22,26,31,.22);
-  border-top-color: rgba(22,26,31,.88);
-  animation: resetSpin .7s linear infinite;
-  vertical-align: middle;
-}
-
-.reset-btn.is-resetting .btn-spinner {
-  display: inline-block;
-}
-
-@keyframes resetSpin {
-  to { transform: rotate(360deg); }
-}
-
 </style>
 </head>
 <body>
@@ -4630,7 +4578,7 @@ function getLastHeartbeatAt(item) {
             <div class="card-footer-note">桜が満開だ。</div>
           </div>
 
-          <button class="reset-btn btn-reset" onclick="sendReset('${pc}')"><span class="btn-label">RESET ${escapeHtml(pc)}</span><span class="btn-spinner"></span></button>
+          <button class="reset-btn" onclick="sendReset('${pc}')"><span class="btn-label">RESET ${escapeHtml(pc)}</span></button>
           ${item.status === 'reset-failed' ? `<button class="retry-btn" onclick="retryReset('${pc}')">THỬ LẠI ${escapeHtml(pc)}</button>` : ''}
         </div>
       `;
@@ -5587,104 +5535,6 @@ ${logBox.textContent}`.slice(0, 12000);
 })();
 </script>
 
-
-
-<script>
-(function() {
-  function findCardByButton(btn) {
-    return btn.closest('.card');
-  }
-
-  function setResettingUI(card, btn) {
-    if (!card || !btn) return;
-
-    const badge = card.querySelector('.badge');
-    const signalPill = card.querySelector('.signal-pill');
-    const signalLabel = card.querySelector('.signal-label');
-    const subline = card.querySelector('.pc-subline span:last-child');
-
-    card.classList.remove('status-online', 'status-offline', 'status-waiting', 'status-reset-failed');
-    card.classList.add('status-resetting');
-
-    if (badge) {
-      badge.textContent = 'Resetting';
-      badge.classList.remove('online', 'offline', 'waiting', 'reset-failed', 'bootfail');
-      badge.classList.add('resetting');
-    }
-
-    if (signalPill) {
-      signalPill.classList.remove('good', 'weak', 'lost');
-      signalPill.classList.add('weak');
-      signalPill.innerHTML = '<span class="signal-dot"></span>Đang reset...';
-    }
-
-    if (signalLabel) {
-      signalLabel.textContent = 'Trạng thái';
-    }
-
-    if (subline) {
-      subline.textContent = 'Đang chờ phản hồi';
-    }
-
-    btn.disabled = true;
-    btn.classList.add('is-resetting');
-    btn.dataset.originalHtml = btn.innerHTML;
-    btn.querySelector('.btn-label')?.replaceChildren(document.createTextNode('RESETTING...'));
-  }
-
-  function setOnlineUI(card, btn) {
-    if (!card || !btn) return;
-
-    const badge = card.querySelector('.badge');
-    const signalPill = card.querySelector('.signal-pill');
-    const signalLabel = card.querySelector('.signal-label');
-    const subline = card.querySelector('.pc-subline span:last-child');
-
-    card.classList.remove('status-resetting', 'status-offline', 'status-waiting', 'status-reset-failed');
-    card.classList.add('status-online');
-
-    if (badge) {
-      badge.textContent = 'Online';
-      badge.classList.remove('resetting', 'offline', 'waiting', 'reset-failed', 'bootfail');
-      badge.classList.add('online');
-    }
-
-    if (signalPill) {
-      signalPill.classList.remove('weak', 'lost');
-      signalPill.classList.add('good');
-      signalPill.innerHTML = '<span class="signal-dot"></span>Mạng khỏe';
-    }
-
-    if (signalLabel) {
-      signalLabel.textContent = 'Chất lượng mạng';
-    }
-
-    if (subline) {
-      subline.textContent = 'Seen just now';
-    }
-
-    if (btn.dataset.originalHtml) {
-      btn.innerHTML = btn.dataset.originalHtml;
-    }
-    btn.disabled = false;
-    btn.classList.remove('is-resetting');
-  }
-
-  document.addEventListener('click', function(e) {
-    const btn = e.target.closest('.btn-reset');
-    if (!btn) return;
-
-    // Let existing onclick/sendReset logic run too, then force UI state
-    const card = findCardByButton(btn);
-    if (!card || btn.disabled) return;
-
-    setTimeout(() => {
-      setResettingUI(card, btn);
-      setTimeout(() => setOnlineUI(card, btn), 4000);
-    }, 50);
-  }, true);
-})();
-</script>
 
 </body>
 </html>
