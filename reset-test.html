@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Điều Khiển Từ Xa</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #1e1e2e; color: #cdd6f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px 0; box-sizing: border-box; }
+        .container { text-align: center; background-color: #313244; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); width: 450px; }
+        h2 { margin-top: 0; color: #89b4fa; }
+        
+        .status-line { 
+            font-size: 16px; 
+            margin: 8px 0 15px 0;
+            border-bottom: 1px solid #45475a;
+            padding-bottom: 10px;
+        }
+        #status-text { font-weight: bold; color: #fab387; }
+        
+        .search-box {
+            width: 100%;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #45475a;
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .search-box:focus {
+            border-color: #89b4fa;
+        }
+        
+        .device-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 55vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .device-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #181825;
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+        .device-name {
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .device-status {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fab387; 
+        }
+        
+        .btn-reset { 
+            background-color: #f38ba8; 
+            color: #11111b; 
+            border: none; 
+            padding: 8px 16px; 
+            font-size: 14px; 
+            font-weight: bold; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            box-shadow: 0 3px 0px #e64573;
+            transition: all 0.1s ease;
+        }
+        .btn-reset:hover { background-color: #fda4bc; }
+        .btn-reset:active { transform: translateY(2px); box-shadow: 0 0px 0px #e64573; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>HỆ THỐNG ĐIỀU KHIỂN TỪ XA</h2>
+    
+    <div class="status-line">Kết nối: <span id="status-text">Đang kết nối...</span></div>
+    
+    <input type="text" id="search-input" class="search-box" placeholder="Nhập số máy hoặc tên máy để tìm nhanh... (Ví dụ: 01, H05)" oninput="filterDevices()">
+    
+    <div class="device-grid" id="device-box"></div>
+</div>
+
+<script>
+    const devices = ["H01", "H02", "H03", "H04", "H05", "H06", "H07", "H08", "H09", "H10","H100" ];
+    const offlineTimers = {}; 
+
+    const deviceBox = document.getElementById("device-box");
+    devices.forEach(id => {
+        deviceBox.innerHTML += `
+            <div class="device-row" id="device-row-${id}">
+                <div class="device-name">MÁY TÍNH: ${id}</div>
+                <div class="device-status" id="device-text-${id}">Đang kiểm tra...</div>
+                <button class="btn-reset" onclick="send('${id}')">Reset</button>
+            </div>
+        `;
+    });
+
+    function filterDevices() {
+        const keyword = document.getElementById("search-input").value.trim().toUpperCase();
+        devices.forEach(id => {
+            const row = document.getElementById(`device-row-${id}`);
+            if (id.includes(keyword) || id.replace("H", "").includes(keyword)) {
+                row.style.display = "flex"; 
+            } else {
+                row.style.display = "none";  
+            }
+        });
+    }
+
+    // ĐÃ SỬA: Đổi từ "ws://...:8083" sang "wss://...:8084" để chạy mượt mà trên HTTPS (GitHub/Netlify)
+    const client = mqtt.connect("wss://broker.emqx.io:8084/mqtt", { clientId: "Web_" + Math.random().toString(16).substr(2, 8) });
+    
+    function startOfflineTimer(id, ms = 31000) {
+        clearTimeout(offlineTimers[id]); 
+        offlineTimers[id] = setTimeout(() => {
+            const deviceLabel = document.getElementById(`device-text-${id}`);
+            if (deviceLabel) {
+                deviceLabel.innerText = "Máy đã OFFLINE";
+                deviceLabel.style.color = "#f38ba8"; 
+            }
+        }, ms); 
+    }
+
+    client.on('connect', () => { 
+        document.getElementById("status-text").innerText = "Đã Kết Nối"; 
+        document.getElementById("status-text").style.color = "#a6e3a1"; 
+        
+        client.subscribe("farm/pc/+/status");
+        
+        devices.forEach(id => {
+            startOfflineTimer(id); 
+        });
+    }); 
+
+    client.on('message', (topic, message, packet) => {
+        if (packet && packet.retain) return; 
+
+        // ĐÃ SỬA: Cải tiến Regex một chút để nhận diện chính xác các dòng máy có 3 chữ số như H100
+        const match = topic.match(/farm\/pc\/(H\d+)\/status/i);
+        if (match) {
+            const id = match[1].toUpperCase();
+            const status = message.toString().trim();
+            const deviceLabel = document.getElementById(`device-text-${id}`);
+            
+            if (!deviceLabel) return;
+
+            if (status === "RESET_DONE" || status === "ONLINE") {
+                deviceLabel.innerText = "Máy đã ONLINE";
+                deviceLabel.style.color = "#a6e3a1"; 
+                startOfflineTimer(id, 31000);
+            }
+            else if (status === "RESETTING") {
+                deviceLabel.innerText = "Đang reset...";
+                deviceLabel.style.color = "#fab387"; 
+                startOfflineTimer(id, 40000); 
+            }
+            else if (status === "OFFLINE") {
+                deviceLabel.innerText = "Máy đã OFFLINE";
+                deviceLabel.style.color = "#f38ba8";
+                clearTimeout(offlineTimers[id]);
+            }
+        }
+    });
+
+    function send(id) {
+        if(confirm(`Bạn có chắc chắn muốn reset máy ${id} không? Ấn OK để đồng ý khởi động lại, ấn Cancel để hủy bỏ.`)) {
+            const topicTarget = id.toUpperCase();
+            const topicHoa = `farm/pc/${topicTarget}/cmd`;
+            const topicThuong = `farm/pc/${id.toLowerCase()}/cmd`;
+            
+            client.publish(topicHoa, "RESET_789XYZ");
+            client.publish(topicThuong, "RESET_789XYZ");
+            
+            const deviceLabel = document.getElementById(`device-text-${topicTarget}`);
+            if (deviceLabel) {
+                deviceLabel.innerText = "Đang reset...";
+                deviceLabel.style.color = "#fab387";
+            }
+            
+            startOfflineTimer(topicTarget, 60000); 
+        }
+    }
+</script>
+</body>
+</html>
