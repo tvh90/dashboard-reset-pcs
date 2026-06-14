@@ -88,7 +88,7 @@
 </div>
 
 <script>
-    const devices = [
+const devices = [
   "H02", "H17", "H18", "H19", "H20", "H21", "H22", "H23", "H24",
   "H25", "H26", "H27"
 ];
