@@ -5,9 +5,9 @@
     <title>Điều Khiển Từ Xa</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #1e1e2e; color: #cdd6f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #1e1e2e; color: #cdd6f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px 0; box-sizing: border-box; flex-direction: column; }
         
-        .container { text-align: center; background-color: #313244; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); width: 95%; max-width: 1400px; }
+        .container { text-align: center; background-color: #313244; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); width: 95%; max-width: 1400px; margin-bottom: 20px; }
         h2 { margin-top: 0; color: #89b4fa; }
         
         .status-line { 
@@ -38,12 +38,11 @@
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 15px;
-            max-height: 65vh; /* Tăng chiều cao để dễ nhìn hơn */
+            max-height: 65vh;
             overflow-y: auto;
             padding-right: 5px;
         }
         
-        /* ĐÃ SỬA: Biến mỗi máy thành một thẻ dạng cột (column) để không bị đè chữ */
         .device-row {
             display: flex;
             flex-direction: column;
@@ -52,7 +51,7 @@
             background-color: #181825;
             padding: 15px;
             border-radius: 8px;
-            gap: 8px; /* Khoảng cách giữa tên, trạng thái và nút */
+            gap: 8px;
             text-align: center;
         }
         .device-name {
@@ -78,29 +77,78 @@
             cursor: pointer; 
             box-shadow: 0 3px 0px #e64573;
             transition: all 0.1s ease;
-            width: 80%; /* Nút bấm rộng ra một chút cho cân đối */
+            width: 80%;
         }
         .btn-reset:hover { background-color: #fda4bc; }
         .btn-reset:active { transform: translateY(2px); box-shadow: 0 0px 0px #e64573; }
         
-        /* Tùy chỉnh thanh cuộn cho đẹp */
-        .device-grid::-webkit-scrollbar {
+        /* Tùy chỉnh thanh cuộn */
+        .device-grid::-webkit-scrollbar, .group-list::-webkit-scrollbar {
             width: 8px;
         }
-        .device-grid::-webkit-scrollbar-track {
+        .device-grid::-webkit-scrollbar-track, .group-list::-webkit-scrollbar-track {
             background: #1e1e2e; 
             border-radius: 4px;
         }
-        .device-grid::-webkit-scrollbar-thumb {
+        .device-grid::-webkit-scrollbar-thumb, .group-list::-webkit-scrollbar-thumb {
             background: #45475a; 
             border-radius: 4px;
         }
-        .device-grid::-webkit-scrollbar-thumb:hover {
+        .device-grid::-webkit-scrollbar-thumb:hover, .group-list::-webkit-scrollbar-thumb:hover {
             background: #585b70; 
         }
+
+        /* --- THÀNH PHẦN QUẢN LÝ NHÓM --- */
+        .group-manager {
+            background-color: #313244;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            width: 95%;
+            max-width: 1400px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .group-manager h3 { margin-top: 0; color: #a6e3a1; border-bottom: 1px solid #45475a; padding-bottom: 8px; }
+        .group-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; align-items: center; }
+        .input-group { background: #1e1e2e; border: 1px solid #45475a; color: #cdd6f4; padding: 8px 12px; border-radius: 6px; outline: none; }
+        .select-group { background: #1e1e2e; border: 1px solid #45475a; color: #cdd6f4; padding: 8px 12px; border-radius: 6px; outline: none; }
+        .btn-group { background-color: #89b4fa; color: #11111b; border: none; padding: 8px 15px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-group:hover { background-color: #b4befe; }
+        .btn-group-danger { background-color: #f38ba8; color: #11111b; }
+        .btn-group-danger:hover { background-color: #fda4bc; }
+        
+        .group-container-wrapper { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
+        .group-card { background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 12px; min-width: 250px; max-width: 300px; }
+        .group-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #45475a; padding-bottom: 5px; margin-bottom: 8px; font-weight: bold; color: #f9e2af; }
+        .group-card-del { background: none; border: none; color: #f38ba8; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .group-list { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .group-item { display: flex; justify-content: space-between; align-items: center; background: #313244; padding: 6px 10px; border-radius: 4px; font-size: 14px; }
+        .btn-item-del { background: none; border: none; color: #f38ba8; cursor: pointer; padding: 0; font-size: 12px; }
     </style>
 </head>
 <body>
+
+<div class="group-manager">
+    <h3>QUẢN LÝ NHÓM MÁY</h3>
+    <div class="group-controls">
+        <input type="text" id="new-group-name" class="input-group" placeholder="Nhập tên nhóm mới...">
+        <button class="btn-group" onclick="createGroup()">Tạo nhóm</button>
+        
+        <span style="margin: 0 10px; color: #585b70;">|</span>
+        
+        <select id="select-group-target" class="select-group"></select>
+        <select id="select-device-target" class="select-group"></select>
+        <button class="btn-group" onclick="addDeviceToGroup()">Thêm vào nhóm</button>
+        <button class="btn-group" style="background-color: #f9e2af; color: #11111b;" onclick="filterByGroup(document.getElementById('select-group-target').value)">Xem nhanh nhóm này</button>
+        <button class="btn-group" style="background-color: #6c7086; color: #cdd6f4;" onclick="clearGroupFilter()">Xem tất cả</button>
+    </div>
+    
+    <div class="group-container-wrapper" id="group-wrapper">
+        </div>
+</div>
+
 <div class="container">
     <h2>HỆ THỐNG ĐIỀU KHIỂN TỪ XA</h2>
     
@@ -200,8 +248,9 @@
     function send(id) {
         if(confirm(`Bạn có chắc chắn muốn reset máy ${id} không? Ấn OK để đồng ý khởi động lại, ấn Cancel để hủy bỏ.`)) {
             const topicTarget = id.toUpperCase();
+            const topicTargetLower = id.toLowerCase();
             const topicHoa = `farm/pc/${topicTarget}/cmd`;
-            const topicThuong = `farm/pc/${id.toLowerCase()}/cmd`;
+            const topicThuong = `farm/pc/${topicTargetLower}/cmd`;
             
             client.publish(topicHoa, "RESET_789XYZ");
             client.publish(topicThuong, "RESET_789XYZ");
@@ -215,6 +264,123 @@
             startOfflineTimer(topicTarget, 60000); 
         }
     }
+
+    /* --- TOÀN BỘ LOGIC THÊM MỚI DÀNH CHO QUẢN LÝ NHÓM --- */
+    let groups = JSON.parse(localStorage.getItem('pc_groups')) || {};
+
+    function saveGroups() {
+        localStorage.setItem('pc_groups', JSON.stringify(groups));
+        renderGroups();
+        updateSelectOptions();
+    }
+
+    function createGroup() {
+        const nameInput = document.getElementById('new-group-name');
+        const groupName = nameInput.value.trim();
+        if (!groupName) return alert('Vui lòng nhập tên nhóm!');
+        if (groups[groupName]) return alert('Tên nhóm này đã tồn tại!');
+        
+        groups[groupName] = [];
+        nameInput.value = '';
+        saveGroups();
+    }
+
+    function deleteGroup(groupName) {
+        if (confirm(`Bạn có chắc chắn muốn xóa nhóm "${groupName}" không?`)) {
+            delete groups[groupName];
+            saveGroups();
+        }
+    }
+
+    function addDeviceToGroup() {
+        const groupSelect = document.getElementById('select-group-target');
+        const deviceSelect = document.getElementById('select-device-target');
+        const groupName = groupSelect.value;
+        const deviceId = deviceSelect.value;
+
+        if (!groupName) return alert('Vui lòng chọn hoặc tạo một nhóm trước!');
+        if (groups[groupName].includes(deviceId)) return alert('Máy này đã có trong nhóm rồi!');
+
+        groups[groupName].push(deviceId);
+        groups[groupName].sort(); // Sắp xếp lại thứ tự máy cho đẹp
+        saveGroups();
+    }
+
+    function removeDeviceFromGroup(groupName, deviceId) {
+        groups[groupName] = groups[groupName].filter(id => id !== deviceId);
+        saveGroups();
+    }
+
+    function filterByGroup(groupName) {
+        if (!groupName || !groups[groupName]) return;
+        const groupDevices = groups[groupName];
+        devices.forEach(id => {
+            const row = document.getElementById(`device-row-${id}`);
+            if (groupDevices.includes(id)) {
+                row.style.display = "flex";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    function clearGroupFilter() {
+        document.getElementById("search-input").value = "";
+        filterDevices();
+    }
+
+    function updateSelectOptions() {
+        const groupSelect = document.getElementById('select-group-target');
+        const deviceSelect = document.getElementById('select-device-target');
+        
+        // Cập nhật danh sách nhóm vào thẻ select
+        const currentGroupVal = groupSelect.value;
+        groupSelect.innerHTML = '';
+        Object.keys(groups).forEach(name => {
+            groupSelect.innerHTML += `<option value="${name}">${name}</option>`;
+        });
+        if (groups[currentGroupVal]) groupSelect.value = currentGroupVal;
+
+        // Cập nhật danh sách máy vào thẻ select
+        if (deviceSelect.innerHTML === '') {
+            devices.forEach(id => {
+                deviceSelect.innerHTML += `<option value="${id}">Máy ${id}</option>`;
+            });
+        }
+    }
+
+    function renderGroups() {
+        const wrapper = document.getElementById('group-wrapper');
+        wrapper.innerHTML = '';
+
+        Object.keys(groups).forEach(groupName => {
+            let listHtml = '';
+            groups[groupName].forEach(id => {
+                listHtml += `
+                    <div class="group-item">
+                        <span>Máy ${id}</span>
+                        <button class="btn-item-del" onclick="removeDeviceFromGroup('${groupName}', '${id}')">✖</button>
+                    </div>
+                `;
+            });
+
+            wrapper.innerHTML += `
+                <div class="group-card">
+                    <div class="group-card-header">
+                        <span>${groupName} (${groups[groupName].length})</span>
+                        <button class="group-card-del" onclick="deleteGroup('${groupName}')">🗑</button>
+                    </div>
+                    <div class="group-list">
+                        ${listHtml || '<span style="color:#585b70; font-size:12px;">Trống...</span>'}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Khởi chạy đồng bộ dữ liệu nhóm ban đầu
+    updateSelectOptions();
+    renderGroups();
 </script>
 </body>
 </html>
